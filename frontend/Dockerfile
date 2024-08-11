@@ -1,5 +1,5 @@
 # Use the official Node.js image as a build stage
-FROM node:18 AS build
+FROM node:20-alpine AS build
 
 # Set the working directory
 WORKDIR /app
@@ -23,7 +23,7 @@ FROM nginx:alpine
 COPY --from=build /app/build /usr/share/nginx/html
 
 # Expose port 80 to the outside world
-EXPOSE 80
+EXPOSE 5173
 
 # Start Nginx server
 CMD ["nginx", "-g", "daemon off;"]
