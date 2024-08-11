@@ -1,0 +1,17 @@
+.env
+.__pycache__
+#app/config.py
+.idea/
+app/__pycache__/
+__pycache__/
+#docker-compose.yaml
+#Dockerfile
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+*.log
+#.env
+*.DS_Store
+.DS_Store
