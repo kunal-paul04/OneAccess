@@ -18,4 +18,4 @@ ENV PYTHONUNBUFFERED 1  # Force Python to output to stdout and stderr without bu
 COPY . .
 
 # Command to run the FastAPI application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8088", "--reload"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
