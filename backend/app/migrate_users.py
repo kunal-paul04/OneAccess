@@ -4,7 +4,7 @@ from sqlalchemy import text
 from fastapi import HTTPException
 
 
-async def migrate_users(mysql_db: Session, mongo_client: MongoClient, batch_size: int = 100000):
+async def migrate_users(mysql_db: Session, mongo_client: MongoClient, batch_size: int = 1000):
     try:
         # Access the MongoDB collection
         mongo_collection = mongo_client['masterDB']['sso_users_master']
@@ -17,8 +17,8 @@ async def migrate_users(mysql_db: Session, mongo_client: MongoClient, batch_size
         while True:
             # MySQL query to fetch data in batches
             query = text(f"""
-                SELECT dl_id, screen_name, first_name, last_name, gender, dob, user_email, user_phone, address, state_id, city_id, zip, user_verification, age_bracket
-                FROM vms_users
+                SELECT dl_id, screen_name, first_name, last_name, gender, dob, user_email, user_phone, address, 
+                state_id,city_id, zip, email_verification, age_bracket, profile_pic FROM vms_users
                 LIMIT :limit OFFSET :offset
             """)
 
@@ -32,10 +32,10 @@ async def migrate_users(mysql_db: Session, mongo_client: MongoClient, batch_size
             batch = []
             for row in rows:
                 user = {
-                    "dl_id": row[0],
-                    "screen_name": row[1],
-                    "first_name": row[2],
-                    "last_name": row[3],
+                    "unique_id": row[0],
+                    "name": row[1],
+                    "given_name": row[2],
+                    "family_name": row[3],
                     "gender": row[4],
                     "dob": row[5],
                     "user_email": row[6],
@@ -44,8 +44,9 @@ async def migrate_users(mysql_db: Session, mongo_client: MongoClient, batch_size
                     "state_id": row[9],
                     "city_id": row[10],
                     "zip": row[11],
-                    "user_verification": row[12],
+                    "email_verification": row[12],
                     "age_bracket": row[13],
+                    "profile_pic": row[14],
                 }
 
                 # Add the user to the batch
@@ -57,7 +58,7 @@ async def migrate_users(mysql_db: Session, mongo_client: MongoClient, batch_size
 
                 # Collect the inserted user details
                 inserted_users.extend({
-                    "dl_id": u["dl_id"],
+                    "unique_id": u["unique_id"],
                     "user_phone": u["user_phone"]
                 } for u in batch)
 
