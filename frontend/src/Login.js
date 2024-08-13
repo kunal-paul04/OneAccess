@@ -32,7 +32,7 @@ const Login = () => {
     const handleGoogleSuccess = (response) => {
         const idToken = response.credential;
 
-        fetch("http://localhost:8088/google-login", {
+        fetch("http://localhost:8000/google-login", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

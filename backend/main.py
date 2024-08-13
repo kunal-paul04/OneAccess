@@ -11,7 +11,7 @@ app = FastAPI()
 
 @app.get("/")
 def read_root():
-    return {"Hello": "Everyone"}
+    return {"Hello": "FastSSO"}
 
 
 @app.get("/migrate_users")
@@ -25,7 +25,8 @@ async def migrate_users_endpoint(
 # Allow CORS for development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    # allow_origins=["http://localhost:3000","https://adequate-renewed-hen.ngrok-free.app/","https://adequate-renewed-hen.ngrok-free.app/"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
