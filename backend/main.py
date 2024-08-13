@@ -1,8 +1,10 @@
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 from pymongo import MongoClient
-from app.database import get_db, get_mongo_client  # Importing database configurations
-from app.migrate_users import migrate_users  # Import the migrate_users function
+from fastapi.middleware.cors import CORSMiddleware
+from app.google_auth import router as google_auth_router
+from app.database import get_db, get_mongo_client
+from app.migrate_users import migrate_users
 
 app = FastAPI()
 
@@ -18,3 +20,16 @@ async def migrate_users_endpoint(
     mongo_client: MongoClient = Depends(get_mongo_client)
 ):
     return await migrate_users(mysql_db, mongo_client)
+
+
+# Allow CORS for development
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include the Google auth router
+app.include_router(google_auth_router)
