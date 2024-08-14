@@ -8,8 +8,10 @@ const Register = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    const navigate = useNavigate(); // Initialize useNavigate
+    const navigate = useNavigate();
 
     const handleRegister = async (e) => {
         e.preventDefault();
@@ -33,8 +35,8 @@ const Register = () => {
                 setSuccessMessage('Registration successful! Please check your email to verify your account.');
                 setError('');
                 setTimeout(() => {
-                    navigate('/dashboard'); // Redirect to dashboard after successful registration
-                }, 2000); // Optional delay for user feedback
+                    navigate('/dashboard');
+                }, 2000);
             } else {
                 setError(data.detail || 'Registration failed');
                 setSuccessMessage('');
@@ -48,7 +50,7 @@ const Register = () => {
     return (
         <div className="register-container">
             <form className="register-form" onSubmit={handleRegister}>
-                <h2>Register</h2>
+                <h2>OneAccess - Register Here</h2>
                 <div className="input-group">
                     <input
                         type="email"
@@ -58,23 +60,31 @@ const Register = () => {
                         onChange={(e) => setEmail(e.target.value)}
                     />
                 </div>
-                <div className="input-group">
+                <div className="input-group password-wrapper">
                     <input
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         placeholder="Enter your Password"
                         required
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                     />
+                    <span
+                        className={`toggle-password ${showPassword ? "fa fa-eye-slash" : "fa fa-eye"}`}
+                        onClick={() => setShowPassword(!showPassword)}
+                    ></span>
                 </div>
-                <div className="input-group">
+                <div className="input-group password-wrapper">
                     <input
-                        type="password"
+                        type={showConfirmPassword ? "text" : "password"}
                         placeholder="Confirm your Password"
                         required
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                     />
+                    <span
+                        className={`toggle-password ${showConfirmPassword ? "fa fa-eye-slash" : "fa fa-eye"}`}
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    ></span>
                 </div>
                 {error && <p className="error-message">{error}</p>}
                 {successMessage && <p className="success-message">{successMessage}</p>}
