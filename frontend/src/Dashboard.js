@@ -1,20 +1,20 @@
 import React from "react";
 import './Dashboard.css';
-import { useNavigate } from 'react-router-dom';
+//import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
-    const navigate = useNavigate();
+//    const navigate = useNavigate();
 
     const handleLogout = () => {
         const userSession = JSON.parse(localStorage.getItem('userSession'));
         const isGoogleLogin = userSession?.googleLogin;
 
-        fetch("http://localhost:8088/logout", {
+        fetch("http://localhost:8000/logout", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ googleLogin: isGoogleLogin })
+            body: JSON.stringify({ g_login: isGoogleLogin })
         })
         .then((res) => res.json())
         .then((data) => {
@@ -27,11 +27,12 @@ const Dashboard = () => {
                     const auth2 = window.gapi.auth2.getAuthInstance();
                     auth2.signOut().then(() => {
                         console.log('User signed out from Google.');
-                        navigate('/'); // Redirect to login page
-//                        window.location.href = "/";
+//                        navigate('/'); // Redirect to login page
+                        window.location.href = "/";
                     });
                 } else {
-                    navigate('/'); // Redirect to login page
+//                    navigate('/'); // Redirect to login page
+                    window.location.href = "/";
                 }
             } else {
                 console.error("Logout failed.");

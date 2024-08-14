@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import './Login.css';
+//import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
+//    const navigate = useNavigate();
+
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -42,7 +45,6 @@ const Login = () => {
         .then((res) => res.json())
         .then((data) => {
             if (data.success) {
-//                window.location.href = "/dashboard";
                 // Set session storage or local storage
                 localStorage.setItem('userSession', JSON.stringify({
                     userId: data.user_id,
@@ -52,8 +54,8 @@ const Login = () => {
                 }));
 
                 // Redirect to the dashboard
-                navigate('/dashboard');
-//                window.location.href = "/dashboard";
+//                navigate('/dashboard');
+                window.location.href = "/dashboard";
             } else {
                 setError("Google Sign-In failed. Please try again.");
             }
