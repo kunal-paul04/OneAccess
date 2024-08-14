@@ -1,41 +1,62 @@
+/* Base styles */
 body {
   background-color: #f5f5f5;
   font-family: Arial, sans-serif;
-}
-
-.login-container {
+  margin: 0;
+  padding: 0;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
 }
 
-.login-form {
-  background-color: white;
+/* Center the login container */
+.login-container {
+  max-width: 100%;
   padding: 20px;
-  border-radius: 20px;
-  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-  width: 320px;
+  box-sizing: border-box;
+}
+
+/* Login form styling */
+.login-form {
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 360px;
   text-align: center;
 }
 
 .login-form h2 {
   margin-bottom: 20px;
-  font-weight: normal;
+  font-weight: 600;
+  color: #333;
+  font-size: 24px;
 }
 
+/* Input group styling */
 .input-group {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
   position: relative;
 }
 
 .input-group input {
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   border: 1px solid #ccc;
   border-radius: 5px;
+  font-size: 14px;
+  box-sizing: border-box;
+  transition: border-color 0.3s ease;
 }
 
+.input-group input:focus {
+  border-color: #007BFF;
+  outline: none;
+}
+
+/* Forgot password link */
 .forgot-password {
   display: block;
   text-align: right;
@@ -45,20 +66,32 @@ body {
   margin-top: 5px;
 }
 
+.forgot-password:hover {
+  text-decoration: underline;
+}
+
+/* Login button styling */
 .login-btn {
   background-color: #ff7800;
-  color: white;
+  color: #fff;
   border: none;
-  padding: 10px;
+  padding: 12px;
   border-radius: 5px;
   cursor: pointer;
   width: 100%;
-  margin-top: 10px;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
 }
 
+.login-btn:hover {
+  background-color: #ff6100;
+}
+
+/* Signup link styling */
 .signup-link {
-  margin-top: 15px;
-  font-size: 12px;
+  margin-top: 20px;
+  font-size: 14px;
+  color: #333;
 }
 
 .signup-link a {
@@ -66,21 +99,32 @@ body {
   text-decoration: none;
 }
 
+.signup-link a:hover {
+  text-decoration: underline;
+}
+
+/* Google login button styling */
 .google-login {
-  margin-top: 15px;
+  margin-top: 20px;
 }
 
 .google-btn {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: white;
+  background-color: #fff;
   color: #757575;
   border: 1px solid #ccc;
-  padding: 10px;
+  padding: 12px;
   border-radius: 5px;
   cursor: pointer;
   width: 100%;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.google-btn:hover {
+  border-color: #007BFF;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .google-btn img {

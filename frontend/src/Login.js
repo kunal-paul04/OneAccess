@@ -55,7 +55,7 @@ const Login = () => {
     return (
         <div className="login-container">
             <form className="login-form" onSubmit={handleLogin}>
-                <h2>Login Form</h2>
+                <h2>OneAccess- Login</h2>
                 <div className="input-group">
                     <input
                         type="email"
