@@ -1,9 +1,7 @@
 import React from "react";
 import './Dashboard.css';
-//import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
-//    const navigate = useNavigate();
 
     const handleLogout = () => {
         const userSession = JSON.parse(localStorage.getItem('userSession'));
@@ -27,11 +25,9 @@ const Dashboard = () => {
                     const auth2 = window.gapi.auth2.getAuthInstance();
                     auth2.signOut().then(() => {
                         console.log('User signed out from Google.');
-//                        navigate('/'); // Redirect to login page
                         window.location.href = "/";
                     });
                 } else {
-//                    navigate('/'); // Redirect to login page
                     window.location.href = "/";
                 }
             } else {

@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import './Login.css';
-//import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
-//    const navigate = useNavigate();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -54,7 +52,6 @@ const Login = () => {
                 }));
 
                 // Redirect to the dashboard
-//                navigate('/dashboard');
                 window.location.href = "/dashboard";
             } else {
                 setError("Google Sign-In failed. Please try again.");

@@ -62,16 +62,16 @@ async def google_login(request: GoogleLoginRequest):
 
 
 @router.post("/logout")
-async def logout(g_login: bool):
+async def logout():
     try:
         # Invalidate the server-side session or token here
         # This might involve deleting a session from your database or cache
 
-        if g_login:
-            # Inform the client to handle Google sign-out
-            return {"success": True, "message": "Logged out from server, please sign out from Google client-side."}
-        else:
-            return {"success": True, "message": "Logout successful"}
+        # if g_login:
+        #     # Inform the client to handle Google sign-out
+        #     return {"success": True, "message": "Logged out from server, please sign out from Google client-side."}
+        # else:
+        return {"success": True, "message": "Logout successful"}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred during logout: {str(e)}. Try again later!")
