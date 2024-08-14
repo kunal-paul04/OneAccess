@@ -45,10 +45,10 @@ const Login = () => {
             if (data.success) {
                 // Set session storage or local storage
                 localStorage.setItem('userSession', JSON.stringify({
-                    userId: data.user_id,
+                    txn: data.txn,
                     email: data.email,
                     name: data.name,
-                    googleLogin: true // Flag indicating Google Sign-In
+                    googleLogin: 1 // Flag indicating Google Sign-In
                 }));
 
                 // Redirect to the dashboard
