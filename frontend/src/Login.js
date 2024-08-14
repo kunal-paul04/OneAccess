@@ -87,7 +87,7 @@ const Login = () => {
                 </div>
                 <button type="submit" className="login-btn">Login</button>
                 <p className="signup-link">
-                    Don't have an Account? <a href="#">Sign up</a>
+                    Don't have an Account? <a href="/register">Sign up</a>
                 </p>
                 <GoogleOAuthProvider clientId="703966748664-06lfs5d36m4638v5k83n9t6j8mgtrf7k.apps.googleusercontent.com">
                     <GoogleLogin

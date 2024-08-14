@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.google_auth import router as google_auth_router
 from app.database import get_db, get_mongo_client
 from app.migrate_users import migrate_users
+from app.register import router as register_router
 
 app = FastAPI()
 
@@ -34,3 +35,6 @@ app.add_middleware(
 
 # Include the Google auth router
 app.include_router(google_auth_router)
+
+# Include the router from register.py
+app.include_router(register_router)
