@@ -42,7 +42,18 @@ const Login = () => {
         .then((res) => res.json())
         .then((data) => {
             if (data.success) {
-                window.location.href = "/dashboard";
+//                window.location.href = "/dashboard";
+                // Set session storage or local storage
+                localStorage.setItem('userSession', JSON.stringify({
+                    userId: data.user_id,
+                    email: data.email,
+                    name: data.name,
+                    googleLogin: true // Flag indicating Google Sign-In
+                }));
+
+                // Redirect to the dashboard
+                navigate('/dashboard');
+//                window.location.href = "/dashboard";
             } else {
                 setError("Google Sign-In failed. Please try again.");
             }

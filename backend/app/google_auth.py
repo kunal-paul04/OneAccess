@@ -8,6 +8,7 @@ router = APIRouter()
 
 # Replace with your actual Google Client ID
 GOOGLE_CLIENT_ID = "703966748664-06lfs5d36m4638v5k83n9t6j8mgtrf7k.apps.googleusercontent.com"
+# GOOGLE_CLIENT_ID = str(os.getenv("GOOGLE_AUTH_CLIENT_ID"))
 
 class GoogleLoginRequest(BaseModel):
     id_token: str
@@ -18,21 +19,21 @@ async def google_login(request: GoogleLoginRequest):
         # Verify the token with Google
         sleep_time = float(os.getenv("AUTH_SLEEP_TIME")) # Wait time before verification
         time.sleep(sleep_time)
-        idinfo = id_token.verify_oauth2_token(request.id_token, requests.Request(), GOOGLE_CLIENT_ID)
+        id_info = id_token.verify_oauth2_token(request.id_token, requests.Request(), GOOGLE_CLIENT_ID)
 
         # Ensure that the token is intended for this app
-        if idinfo['aud'] != GOOGLE_CLIENT_ID:
+        if id_info['aud'] != GOOGLE_CLIENT_ID:
             raise HTTPException(status_code=401, detail="Token was not issued for this app.")
 
         # Check if the token is expired
-        if idinfo['exp'] < time.time():
+        if id_info['exp'] < time.time():
             raise HTTPException(status_code=401, detail="Token has expired.")
 
         # Extract user information from the token
-        user_id = idinfo["sub"]
-        email = idinfo["email"]
-        name = idinfo.get("name")
-        detail = idinfo
+        user_id = id_info["sub"]
+        email = id_info["email"]
+        name = id_info.get("name")
+        detail = id_info
 
         # Handle user creation or authentication logic here
         return {"success": True, "message": "Login successful", "user_id": user_id, "email": email, "name": name, "complete_detail": detail}
@@ -47,4 +48,20 @@ async def google_login(request: GoogleLoginRequest):
 
     except Exception as e:
         # Catch any other exceptions and return a generic error message
-        raise HTTPException(status_code=500, detail="An internal error occurred. Please try again later.")
+        raise HTTPException(status_code=500, detail=f"An internal error occurred: {str(e)}. Please try again later.")
+
+
+@router.post("/logout")
+async def logout(g_login: bool):
+    try:
+        # Invalidate the server-side session or token here
+        # This might involve deleting a session from your database or cache
+
+        if g_login:
+            # Inform the client to handle Google sign-out
+            return {"success": True, "message": "Logged out from server, please sign out from Google client-side."}
+        else:
+            return {"success": True, "message": "Logout successful"}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred during logout: {str(e)}. Try again later!")
