@@ -12,7 +12,7 @@ app = FastAPI()
 
 @app.get("/")
 def read_root():
-    return {"Hello": "FastSSO"}
+    return {"Hello": "FastSSO.git checkout "}
 
 
 @app.get("/migrate_users")

@@ -3,6 +3,7 @@ import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import './Login.css';
 
 const Login = () => {
+
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -42,6 +43,15 @@ const Login = () => {
         .then((res) => res.json())
         .then((data) => {
             if (data.success) {
+                // Set session storage or local storage
+                localStorage.setItem('userSession', JSON.stringify({
+                    txn: data.txn,
+                    email: data.email,
+                    name: data.name,
+                    googleLogin: 1 // Flag indicating Google Sign-In
+                }));
+
+                // Redirect to the dashboard
                 window.location.href = "/dashboard";
             } else {
                 setError("Google Sign-In failed. Please try again.");

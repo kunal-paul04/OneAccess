@@ -1,18 +1,33 @@
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import JSONResponse
 from google.oauth2 import id_token
 from google.auth.transport import requests
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 import time
 import os
+import uuid
 
 router = APIRouter()
 
 # Replace with your actual Google Client ID
 GOOGLE_CLIENT_ID = "703966748664-06lfs5d36m4638v5k83n9t6j8mgtrf7k.apps.googleusercontent.com"
+# GOOGLE_CLIENT_ID = str(os.getenv("GOOGLE_AUTH_CLIENT_ID"))
 
 
 class GoogleLoginRequest(BaseModel):
     id_token: str
+
+
+class LogoutRequest(BaseModel):
+    txn: str
+    email: EmailStr
+    isGoogleLogin: int
+
+
+def generate_txn_number():
+    # Option 1: Generate a UUID-based transaction number
+    txn_number = str(uuid.uuid4())
+    return txn_number
 
 
 @router.post("/google-login")
@@ -32,6 +47,7 @@ async def google_login(request: GoogleLoginRequest):
             raise HTTPException(status_code=401, detail="Token has expired.")
 
         # Extract user information from the token
+        txn = generate_txn_number()
         user_id = info["sub"]
         email = info["email"]
         name = info.get("name")
@@ -41,6 +57,7 @@ async def google_login(request: GoogleLoginRequest):
         return {
             "success": True,
             "message": "Login successful",
+            "txn": txn,
             "user_id": user_id,
             "email": email,
             "name": name,
@@ -57,4 +74,23 @@ async def google_login(request: GoogleLoginRequest):
 
     except Exception as e:
         # Catch any other exceptions and return a generic error message
-        raise HTTPException(status_code=500, detail="An internal error occurred. Please try again later.")
+        raise HTTPException(status_code=500, detail=f"An internal error occurred: {str(e)}. Please try again later.")
+
+
+@router.post("/logout")
+async def logout(request: LogoutRequest):
+    try:
+        # Invalidate the server-side session or token here
+        # This might involve deleting a session from your database or cache
+        g_login = bool(request.isGoogleLogin)
+        if g_login:
+            return JSONResponse(content={
+                "success": True,
+                "message": "Logged out from server, please sign out from Google client-side.",
+                "google_signout_required": True
+            })
+        else:
+            return {"success": True, "message": "Logout successful"}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred during logout: {str(e)}. Try again later!")
