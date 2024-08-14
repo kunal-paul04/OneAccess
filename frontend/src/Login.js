@@ -18,12 +18,19 @@ const Login = () => {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify({ email, password}),
             });
     
             const data = await response.json();
-            //console.log('Response:', data);
+            console.log('Response:', data);
             if (response.ok && data.success) {
+                // Set session storage or local storage
+                localStorage.setItem('userSession', JSON.stringify({
+                    txn: data.txn,
+                    email: data.email,
+                    googleLogin: 0 // Flag indicating not login via Google account
+                }));
+
                 window.location.href = "/dashboard";
             } else {
                 setError("Login failed. Please check your credentials.");
