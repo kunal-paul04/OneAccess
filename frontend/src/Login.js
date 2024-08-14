@@ -8,26 +8,29 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
 
-    const handleLogin = (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
-        fetch("http://localhost:8000/login", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email, password }),
-        })
-        .then((res) => res.json())
-        .then((data) => {
-            if (data.success) {
-              window.location.href = "/dashboard";
+        setError(''); // Clear any previous error
+    
+        try {
+            const response = await fetch("http://localhost:8000/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ email, password }),
+            });
+    
+            const data = await response.json();
+            //console.log('Response:', data);
+            if (response.ok && data.success) {
+                window.location.href = "/dashboard";
             } else {
-              setError("Login failed. Please check your credentials.");
+                setError("Login failed. Please check your credentials.");
             }
-        })
-        .catch((err) => {
+        } catch (error) {
             setError("An error occurred. Please try again later.");
-        });
+        }
     };
 
     const handleGoogleSuccess = (response) => {
@@ -66,6 +69,7 @@ const Login = () => {
         <div className="login-container">
             <form className="login-form" onSubmit={handleLogin}>
                 <h2>OneAccess- Login</h2>
+                {error && <div className="error-message">{error}</div>}
                 <div className="input-group">
                     <input
                         type="email"
