@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 from pymongo import MongoClient
+from app.login import router as login_router
 from fastapi.middleware.cors import CORSMiddleware
 from app.google_auth import router as google_auth_router
 from app.database import get_db, get_mongo_client
@@ -38,3 +39,6 @@ app.include_router(google_auth_router)
 
 # Include the router from register.py
 app.include_router(register_router)
+
+# Include the login router
+app.include_router(login_router)
