@@ -1,17 +1,20 @@
-from fastapi import APIRouter, HTTPException
-from fastapi.responses import JSONResponse
-from google.oauth2 import id_token
-from google.auth.transport import requests
-from pydantic import BaseModel, EmailStr
-import time
 import os
+import time
 import uuid
+from dotenv import load_dotenv
+from google.oauth2 import id_token
+from pydantic import BaseModel, EmailStr
+from google.auth.transport import requests
+from fastapi.responses import JSONResponse
+from fastapi import APIRouter, HTTPException
+
 
 router = APIRouter()
 
-# Replace with your actual Google Client ID
-GOOGLE_CLIENT_ID = "703966748664-06lfs5d36m4638v5k83n9t6j8mgtrf7k.apps.googleusercontent.com"
-# GOOGLE_CLIENT_ID = str(os.getenv("GOOGLE_AUTH_CLIENT_ID"))
+load_dotenv()
+
+# Google Client ID from .env file
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_AUTH_CLIENT_ID")
 
 
 class GoogleLoginRequest(BaseModel):
