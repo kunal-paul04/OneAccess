@@ -89,6 +89,9 @@ const Register = () => {
                 {error && <p className="error-message">{error}</p>}
                 {successMessage && <p className="success-message">{successMessage}</p>}
                 <button type="submit" className="register-btn">Register</button>
+                <p className="signup-link">
+                   Already have an Account? <a href="/login">Sign In</a>
+                </p>
             </form>
         </div>
     );
