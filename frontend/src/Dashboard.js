@@ -1,5 +1,7 @@
+// Dashboard.js
 import React, { useEffect } from "react";
 import DashboardLayout from './DashboardLayout';
+import DashboardAnalytics from './DashboardAnalytics'; // Import the DashboardAnalytics component
 
 const Dashboard = () => {
     useEffect(() => {
@@ -17,7 +19,6 @@ const Dashboard = () => {
             }
         };
 
-        // Load the Google Identity Services script if not already loaded
         const script = document.createElement('script');
         script.src = "https://accounts.google.com/gsi/client";
         script.async = true;
@@ -46,7 +47,7 @@ const Dashboard = () => {
 
                 if (isGoogleLogin) {
                     if (window.google) {
-                        window.google.accounts.id.disableAutoSelect(); // Disable auto-select if needed
+                        window.google.accounts.id.disableAutoSelect(); 
                         window.google.accounts.id.revoke(process.env.REACT_APP_GOOGLE_CLIENT_ID, () => {
                             console.log('User signed out from Google.');
                             window.location.href = "/";
@@ -69,7 +70,7 @@ const Dashboard = () => {
 
     return (
         <DashboardLayout onLogout={handleLogout}>
-            Welcome to the OneAccess Dashboard
+            <DashboardAnalytics /> {/* Include the analytics component */}
         </DashboardLayout>
     );
 };
