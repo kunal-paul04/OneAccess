@@ -1,0 +1,44 @@
+/* DashboardAnalytics.css */
+
+.boxContainer {
+    padding: 16px;
+}
+
+.paperContainer {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.countingBox {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    height: 140px;
+}
+
+.statisticsValue {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-top: 8px;
+}
+
+.chartTitle {
+    font-size: 1.2rem;
+    margin-bottom: 16px;
+}
+
+.chartContainer {
+    width: 100%;
+    height: 300px;
+}
+
+@media (max-width: 768px) {
+    .chartContainer {
+        height: 250px;
+    }
+}

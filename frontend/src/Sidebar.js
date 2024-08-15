@@ -5,6 +5,7 @@ const Sidebar = ({ onLogout }) => {
     return (
         <div className="sidebar">
             <h2>OneAccess Menu</h2>
+            <a href="/Dashboard">Dashboard</a>
             <a href="#">Profile</a>
             <a href="#">Settings</a>
             <a href="#">Reports</a>
