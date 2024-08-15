@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import './Login.css';
 
-const Login = () => {
+const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
 
+const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -11,7 +12,7 @@ const Login = () => {
     const handleLogin = async (e) => {
         e.preventDefault();
         setError(''); // Clear any previous error
-    
+
         try {
             const response = await fetch("http://localhost:8000/login", {
                 method: "POST",
@@ -20,11 +21,9 @@ const Login = () => {
                 },
                 body: JSON.stringify({ email, password}),
             });
-    
+
             const data = await response.json();
-            console.log('Response:', data);
             if (response.ok && data.success) {
-                // Set session storage or local storage
                 localStorage.setItem('userSession', JSON.stringify({
                     txn: data.txn,
                     email: data.email,
@@ -53,7 +52,6 @@ const Login = () => {
         .then((res) => res.json())
         .then((data) => {
             if (data.success) {
-                // Set session storage or local storage
                 localStorage.setItem('userSession', JSON.stringify({
                     txn: data.txn,
                     email: data.email,
@@ -61,7 +59,6 @@ const Login = () => {
                     googleLogin: 1 // Flag indicating Google Sign-In
                 }));
 
-                // Redirect to the dashboard
                 window.location.href = "/dashboard";
             } else {
                 setError("Google Sign-In failed. Please try again.");
@@ -94,16 +91,22 @@ const Login = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                     />
-                    <a href="#" className="forgot-password">Forget password?</a>
                 </div>
+                <a href="#" className="forgot-password">Forget password?</a>
                 <button type="submit" className="login-btn">Login</button>
                 <p className="signup-link">
                     Don't have an Account? <a href="/register">Sign up</a>
                 </p>
-                <GoogleOAuthProvider clientId="703966748664-06lfs5d36m4638v5k83n9t6j8mgtrf7k.apps.googleusercontent.com">
+                <GoogleOAuthProvider clientId={clientId}>
                     <GoogleLogin
                         onSuccess={handleGoogleSuccess}
                         onError={() => setError("Google Sign-In failed. Please try again.")}
+                        render={(renderProps) => (
+                            <div className="google-signin-button" onClick={renderProps.onClick}>
+                                <img src="path-to-google-logo.png" alt="Google Logo" />
+                                <span>Sign in with Google</span>
+                            </div>
+                        )}
                     />
                 </GoogleOAuthProvider>
             </form>

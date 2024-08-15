@@ -44,7 +44,8 @@ async def register(request: RegisterRequest, mongo_client=Depends(get_mongo_clie
     user_data = {
         "unique_id": unique_id,
         "user_email": request.email,
-        "passkey": hashed_password
+        "passkey": hashed_password,
+        "googleLogin": 0
     }
     result = users_collection.insert_one(user_data)
     if result.inserted_id:

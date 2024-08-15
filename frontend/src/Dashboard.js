@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import './Dashboard.css';
+import DashboardLayout from './DashboardLayout';
 
 const Dashboard = () => {
     useEffect(() => {
@@ -68,26 +68,9 @@ const Dashboard = () => {
     };
 
     return (
-        <div className="dashboard">
-            <nav className="sidebar">
-                <h2>Dashboard Menu</h2>
-                <ul>
-                    <li><a href="#profile">Profile</a></li>
-                    <li><a href="#settings">Settings</a></li>
-                    <li><a href="#reports">Reports</a></li>
-                    <li><a href="#logout" onClick={handleLogout}>Logout</a></li>
-                </ul>
-            </nav>
-            <div className="content">
-                <header className="header">
-                    <button className="logout-button" onClick={handleLogout}>Logout</button>
-                </header>
-                <div className="profile-section">
-                    <img src="profile-picture-url" alt="Profile" className="profile-pic" />
-                    <h1>Welcome to the Dashboard</h1>
-                </div>
-            </div>
-        </div>
+        <DashboardLayout onLogout={handleLogout}>
+            Welcome to the OneAccess Dashboard
+        </DashboardLayout>
     );
 };
 
