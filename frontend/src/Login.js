@@ -9,10 +9,12 @@ const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false); // State to manage loading spinner
 
     const handleLogin = async (e) => {
         e.preventDefault();
         setError(''); // Clear any previous error
+        setLoading(true); // Show loading spinner
 
         try {
             const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/login`, {
@@ -44,10 +46,13 @@ const Login = () => {
             }
         } catch (error) {
             setError("An error occurred. Please try again later.");
+        } finally {
+            setLoading(false); // Hide loading spinner
         }
     };
 
     const handleGoogleSuccess = (response) => {
+        setLoading(true); // Show loading spinner
         const idToken = response.credential;
 
         fetch(`${process.env.REACT_APP_BACKEND_URL}/google-login`, {
@@ -75,6 +80,9 @@ const Login = () => {
         })
         .catch((err) => {
             setError("An error occurred. Please try again later.");
+        })
+        .finally(() => {
+            setLoading(false); // Hide loading spinner
         });
     };
 
@@ -90,6 +98,7 @@ const Login = () => {
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                        disabled={loading} // Disable input when loading
                     />
                 </div>
                 <div className="input-group">
@@ -99,10 +108,13 @@ const Login = () => {
                         required
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        disabled={loading} // Disable input when loading
                     />
                 </div>
                 {/* <a href="#" className="forgot-password">Forget password?</a> */}
-                <button type="submit" className="login-btn">Login</button>
+                <button type="submit" className="login-btn" disabled={loading}>
+                    {loading ? "Loading..." : "Login"}
+                </button>
                 <p className="signup-link">
                     Don't have an Account? <a href="/register">Sign up</a>
                 </p>
@@ -111,14 +123,29 @@ const Login = () => {
                         onSuccess={handleGoogleSuccess}
                         onError={() => setError("Google Sign-In failed. Please try again.")}
                         render={(renderProps) => (
-                            <div className="google-signin-button" onClick={renderProps.onClick}>
-                                <img src="path-to-google-logo.png" alt="Google Logo" />
-                                <span>Sign in with Google</span>
+                            // <div className="google-signin-button" onClick={renderProps.onClick}>
+                            //     <img src="path-to-google-logo.png" alt="Google Logo" />
+                            //     <span>Sign in with Google</span>
+                            // </div>
+                            <div
+                                className="google-signin-button"
+                                onClick={renderProps.onClick}
+                                disabled={loading} // Disable button when loading
+                            >
+                                {loading ? (
+                                    <div className="loading-spinner"></div> // Loader during Google Sign-In
+                                ) : (
+                                    <>
+                                        <img src="path-to-google-logo.png" alt="Google Logo" />
+                                        <span>Sign in with Google</span>
+                                    </>
+                                )}
                             </div>
                         )}
                     />
                 </GoogleOAuthProvider>
             </form>
+            {loading && <div className="overlay"><div className="loading-spinner"></div></div>}
         </div>
     );
 };
