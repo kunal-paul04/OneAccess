@@ -11,6 +11,10 @@
     height: 100%;
 }
 
+.page-tag {
+    padding-left: 24px;
+}
+
 .countingBox {
     padding: 16px;
     display: flex;

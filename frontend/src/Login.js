@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import './Login.css';
+import { saveUserSession } from './utils/authUtils';
 
 const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
 
@@ -14,7 +15,7 @@ const Login = () => {
         setError(''); // Clear any previous error
 
         try {
-            const response = await fetch("http://localhost:8000/login", {
+            const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/login`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -29,6 +30,13 @@ const Login = () => {
                     email: data.email,
                     googleLogin: 0 // Flag indicating not login via Google account
                 }));
+                // After successful login or Google sign-in
+                saveUserSession({
+                    txn: data.txn,
+                    email: data.email,
+                    name: data.name,
+                    googleLogin: 0
+                });
 
                 window.location.href = "/dashboard";
             } else {
@@ -42,7 +50,7 @@ const Login = () => {
     const handleGoogleSuccess = (response) => {
         const idToken = response.credential;
 
-        fetch("http://localhost:8000/google-login", {
+        fetch(`${process.env.REACT_APP_BACKEND_URL}/google-login`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -52,12 +60,13 @@ const Login = () => {
         .then((res) => res.json())
         .then((data) => {
             if (data.success) {
-                localStorage.setItem('userSession', JSON.stringify({
+                // After successful login or Google sign-in
+                saveUserSession({
                     txn: data.txn,
                     email: data.email,
                     name: data.name,
-                    googleLogin: 1 // Flag indicating Google Sign-In
-                }));
+                    googleLogin: 1
+                });
 
                 window.location.href = "/dashboard";
             } else {
@@ -92,7 +101,7 @@ const Login = () => {
                         onChange={(e) => setPassword(e.target.value)}
                     />
                 </div>
-                <a href="#" className="forgot-password">Forget password?</a>
+                {/* <a href="#" className="forgot-password">Forget password?</a> */}
                 <button type="submit" className="login-btn">Login</button>
                 <p className="signup-link">
                     Don't have an Account? <a href="/register">Sign up</a>
