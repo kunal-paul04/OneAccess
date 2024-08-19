@@ -50,43 +50,6 @@ const Profile = () => {
     return <div>Loading...</div>;
     }
 
-    // const handleSubmit = async (e) => {
-    //     e.preventDefault();
-
-    //     const profileData = {
-    //         dob,
-    //         gender,
-    //         country_id: country,
-    //         state_id: state,
-    //         city_id: district,
-    //         user_phone: phone,
-    //         zip,
-    //         address
-    //     };
-
-    //     try {
-    //         const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/update-profile/${email}`, {
-    //             method: 'PUT',
-    //             headers: {
-    //                 'Content-Type': 'application/json',
-    //             },
-    //             body: JSON.stringify(profileData),
-    //         });
-    //         console.log('Response Status:', response.status);
-    //         const responseBody = await response.json();
-    //         console.log('Response Body:', responseBody);
-
-    //         if (response.ok) {
-    //             alert("Profile updated successfully!");
-    //         } else {
-    //             alert(`Error: ${responseBody.detail}`);
-    //         }
-    //     } catch (error) {
-    //         console.error("Error updating profile:", error);
-    //         alert("Error updating profile. Please try again later.");
-    //     }
-    // };
-
     return (
         <DashboardLayout userName={userName}>
             <h5 className="page-tag">Home &gt; Profile</h5>
