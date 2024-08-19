@@ -11,7 +11,7 @@ const ProfileForm = ({
   useEffect(() => {
     if (country) {
       // Fetch states when country is selected
-      fetch('http://localhost:8000/states', {
+      fetch(`${process.env.REACT_APP_BACKEND_URL}/states`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -21,7 +21,6 @@ const ProfileForm = ({
       })
         .then(response => response.json())
         .then(data => {
-          console.log('Fetched states data:', data); // Debugging line
           if (data && data.states) {
             setStates(data.states.map((state, index) => ({ id: index + 1, name: state })));
           } else {
@@ -41,7 +40,7 @@ const ProfileForm = ({
   useEffect(() => {
     if (state) {
       // Fetch districts when state is selected
-      fetch('http://localhost:8000/districts', {
+      fetch(`${process.env.REACT_APP_BACKEND_URL}/districts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -51,7 +50,6 @@ const ProfileForm = ({
       })
         .then(response => response.json())
         .then(data => {
-          console.log('Fetched districts data:', data); // Debugging line
           if (data && data.districts) {
             setDistricts(data.districts.map((district, index) => ({ id: index + 1, name: district })));
           } else {
@@ -75,42 +73,37 @@ const ProfileForm = ({
         <div className="form-grid">
           <div className="form-group">
             <label>Name:</label>
-            <input
-              type="text"
-              value={userName || ''}
-              disabled
-            />
+            <input type="text" value={userName || ''} readOnly />
           </div>
           <div className="form-group">
             <label>Email:</label>
-            <input
-              type="email"
-              value={email || ''}
-              disabled
-            />
+            <input type="email" value={email || ''} readOnly />
           </div>
           <div className="form-group">
             <label>Mobile No.:</label>
-            <input
-              type="text"
-              value={phone || ''}
-              onChange={(e) => setPhone(e.target.value)}
+            <input 
+              type="text" 
+              value={phone || ''} 
+              onChange={(e) => setPhone(e.target.value)} 
+              readOnly={!!phone} 
             />
           </div>
           <div className="form-group">
             <label>Date of Birth:</label>
-            <input
-              type="date"
-              value={dob || ''}
-              onChange={(e) => setDob(e.target.value)}
+            <input 
+              type="date" 
+              value={dob || ''} 
+              onChange={(e) => setDob(e.target.value)} 
+              readOnly={!!dob} 
             />
           </div>
           <div className="form-group">
             <label>Gender:</label>
-            <select
-              className="form-control"
-              value={gender || ''}
-              onChange={(e) => setGender(e.target.value)}
+            <select 
+              className="form-control" 
+              value={gender || ''} 
+              onChange={(e) => setGender(e.target.value)} 
+              disabled={!!gender}
             >
               <option value="">Select Gender</option>
               <option value="Male">Male</option>
@@ -120,10 +113,11 @@ const ProfileForm = ({
           </div>
           <div className="form-group">
             <label>Country:</label>
-            <select
-              className="form-control"
-              value={country || ''}
-              onChange={(e) => setCountry(e.target.value)}
+            <select 
+              className="form-control" 
+              value={country || ''} 
+              onChange={(e) => setCountry(e.target.value)} 
+              disabled={!!country}
             >
               <option value="">Select Country</option>
               <option value="99">India</option>
@@ -131,11 +125,11 @@ const ProfileForm = ({
           </div>
           <div className="form-group">
             <label>State:</label>
-            <select
-              className="form-control"
-              value={state || ''}
-              onChange={(e) => setState(e.target.value)}
-              disabled={!states.length}
+            <select 
+              className="form-control" 
+              value={state || ''} 
+              onChange={(e) => setState(e.target.value)} 
+              disabled={!states.length || !!state}
             >
               <option value="">Select State</option>
               {states.map((state) => (
@@ -147,11 +141,11 @@ const ProfileForm = ({
           </div>
           <div className="form-group">
             <label>District:</label>
-            <select
-              className="form-control"
-              value={district || ''}
-              onChange={(e) => setDistrict(e.target.value)}
-              disabled={!districts.length} // Disable if no districts are available
+            <select 
+              className="form-control" 
+              value={district || ''} 
+              onChange={(e) => setDistrict(e.target.value)} 
+              disabled={!districts.length || !!district}
             >
               <option value="">Select District</option>
               {districts.map((district) => (
@@ -163,19 +157,21 @@ const ProfileForm = ({
           </div>
           <div className="form-group">
             <label>ZIP Code:</label>
-            <input
-              type="text"
-              value={zip || ''}
-              onChange={(e) => setZip(e.target.value)}
+            <input 
+              type="text" 
+              value={zip || ''} 
+              onChange={(e) => setZip(e.target.value)} 
+              readOnly={!!zip} 
             />
           </div>
           <div className="form-group">
             <label>Address:</label>
-            <textarea
-              value={address || ''}
-              onChange={(e) => setAddress(e.target.value)}
-              rows="4"
-              className="textarea"
+            <textarea 
+              value={address || ''} 
+              onChange={(e) => setAddress(e.target.value)} 
+              rows="4" 
+              className="textarea" 
+              readOnly={!!address} 
             />
           </div>
         </div>
