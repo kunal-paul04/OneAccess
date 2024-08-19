@@ -6,32 +6,61 @@ import { getUserSession } from './utils/authUtils';
 const Profile = () => {
     const [userName, setUserName] = useState('');
     const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
     const [dob, setDob] = useState('');
-    const [zip, setZip] = useState('');
+    const [gender, setGender] = useState('');
+    const [country, setCountry] = useState('');
     const [state, setState] = useState('');
     const [district, setDistrict] = useState('');
-    const [country, setCountry] = useState('');
+    const [zip, setZip] = useState('');
+    const [address, setAddress] = useState('');
+    //const [isProfileUpdated, setIsProfileUpdated] = useState(false);
 
     useEffect(() => {
         const userSession = getUserSession();
-        // if (userSession && userSession.name) {
-        //     setUserName(userSession.name);
-        // }
 
         if (userSession) {
             setUserName(userSession.name || '');
             setEmail(userSession.email || '');
-            setDob(userSession.dob || '');
-            setZip(userSession.zip || '');
-            setState(userSession.state || '');
-            setDistrict(userSession.district || '');
-            setCountry(userSession.country || '');
         }
     }, []);
 
-    const handleSubmit = (e) => {
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Updated Profile Data:', { userName, email, dob, zip, state, district, country });
+
+        const profileData = {
+            dob,
+            gender,
+            country_id: country,
+            state_id: state,
+            city_id: district,
+            user_phone: phone,
+            zip,
+            address
+        };
+
+        try {
+            const response = await fetch(`http://localhost:8000/update-profile/${email}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(profileData),
+            });
+            console.log('Response Status:', response.status);
+            const responseBody = await response.json();
+            console.log('Response Body:', responseBody);
+
+            if (response.ok) {
+                alert("Profile updated successfully!");
+            } else {
+                alert(`Error: ${responseBody.detail}`);
+            }
+        } catch (error) {
+            console.error("Error updating profile:", error);
+            alert("Error updating profile. Please try again later.");
+        }
     };
 
     return (
@@ -40,18 +69,22 @@ const Profile = () => {
             <ProfileForm
                 userName={userName}
                 email={email}
+                phone={phone}
                 dob={dob}
-                zip={zip}
+                gender={gender}
+                country={country}
                 state={state}
                 district={district}
-                country={country}
-                setUserName={setUserName}
-                setEmail={setEmail}
+                zip={zip}
+                address={address}
                 setDob={setDob}
-                setZip={setZip}
+                setPhone={setPhone}
+                setGender={setGender}
+                setCountry={setCountry}
                 setState={setState}
                 setDistrict={setDistrict}
-                setCountry={setCountry}
+                setZip={setZip}
+                setAddress={setAddress}
                 handleSubmit={handleSubmit}
             />
         </DashboardLayout>
