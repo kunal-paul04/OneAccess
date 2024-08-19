@@ -1,5 +1,6 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
 from pymongo import MongoClient
 from app.login import router as login_router
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,6 +10,8 @@ from app.migrate_users import migrate_users
 from app.register import router as register_router
 from app.user_info import router as user_router
 from app.client_service import router as client_router
+from app.update_profile import router as update_profile_router
+from app.elk_data import get_states_list, CountryRequest, StateRequest, get_district_list
 
 app = FastAPI()
 
@@ -50,3 +53,31 @@ app.include_router(user_router)
 
 # Include the router from client_service.py
 app.include_router(client_router)
+
+# Include the router from update_profile.py
+app.include_router(update_profile_router)
+
+
+@app.post("/states")
+async def fetch_states(country_request: CountryRequest):
+    response = get_states_list(country_request.country_id)
+    if response.get("status") == 500:
+        raise HTTPException(status_code=500, detail=response.get("message"))
+
+    # Extract the 'name' field from each hit
+    states = [hit["_source"]["name"] for hit in response.get("hits", {}).get("hits", [])]
+
+    return {"states": states}
+
+
+@app.post("/districts")
+async def fetch_districts(state_request: StateRequest):
+    response = get_district_list(state_request.state_id)
+    print(response)
+    if response.get("status") == 500:
+        raise HTTPException(status_code=500, detail=response.get("message"))
+
+    # Extract the 'name' field from each hit
+    districts = [hit["_source"]["name"] for hit in response.get("hits", {}).get("hits", [])]
+
+    return {"districts": districts}

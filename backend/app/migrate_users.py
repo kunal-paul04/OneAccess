@@ -2,9 +2,10 @@ from sqlalchemy.orm import Session
 from pymongo import MongoClient
 from sqlalchemy import text
 from fastapi import HTTPException
+from datetime import datetime
 
 
-async def migrate_users(mysql_db: Session, mongo_client: MongoClient, batch_size: int = 1000):
+async def migrate_users(mysql_db: Session, mongo_client: MongoClient, batch_size: int = 100):
     try:
         # Access the MongoDB collection
         mongo_collection = mongo_client['masterDB']['sso_users_master']
@@ -18,7 +19,7 @@ async def migrate_users(mysql_db: Session, mongo_client: MongoClient, batch_size
             # MySQL query to fetch data in batches
             query = text(f"""
                 SELECT dl_id, screen_name, first_name, last_name, gender, dob, user_email, user_phone, address, 
-                state_id,city_id, zip, email_verification, age_bracket, profile_pic FROM vms_users
+                country_id,state_id,city_id, zip, email_verification, age_bracket, profile_pic FROM vms_users
                 LIMIT :limit OFFSET :offset
             """)
 
@@ -31,22 +32,32 @@ async def migrate_users(mysql_db: Session, mongo_client: MongoClient, batch_size
 
             batch = []
             for row in rows:
+                # Parse and convert the date format
+                dob_str = row[5]
+                try:
+                    dob = datetime.strptime(dob_str, '%d-%m-%Y').strftime('%Y-%m-%d')
+                except ValueError:
+                    dob = None  # Handle cases where date parsing fails
+
                 user = {
                     "unique_id": row[0],
                     "name": row[1],
                     "given_name": row[2],
                     "family_name": row[3],
                     "gender": row[4],
-                    "dob": row[5],
+                    "dob": dob,
                     "user_email": row[6],
                     "user_phone": row[7],
                     "address": row[8],
-                    "state_id": row[9],
-                    "city_id": row[10],
-                    "zip": row[11],
-                    "email_verification": row[12],
-                    "age_bracket": row[13],
-                    "profile_pic": row[14],
+                    "country_id": row[9],
+                    "state_id": row[10],
+                    "city_id": row[11],
+                    "zip": row[12],
+                    "email_verification": row[13],
+                    "age_bracket": row[14],
+                    "profile_pic": row[15],
+                    "passkey": "",
+                    "googleLogin": 0
                 }
 
                 # Add the user to the batch
