@@ -25,7 +25,7 @@ def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
 
 
-@router.post("/register")
+@router.post("/register", tags=["Login & Registration"])
 async def register(request: RegisterRequest, mongo_client=Depends(get_mongo_client)):
     db = mongo_client[MONGO_DB]  # Get the database
     users_collection = db[MONGO_COLLECTION]  # Get the collection

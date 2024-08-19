@@ -18,7 +18,7 @@ def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
 
 
-@router.post("/login")
+@router.post("/login", tags=["Login & Registration"])
 async def login(login_request: LoginRequest, mongo_client: MongoClient = Depends(get_mongo_client)):
     sso_users_collection = mongo_client[MONGO_DB][MONGO_COLLECTION]
 

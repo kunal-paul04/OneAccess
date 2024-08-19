@@ -10,7 +10,7 @@ class ProfileRequest(BaseModel):
     email: EmailStr
 
 
-@router.post("/get_profile")
+@router.post("/get_profile", tags=["Get Details"])
 async def get_info(request: ProfileRequest, mongo_client=Depends(get_mongo_client)):
     db = mongo_client[MONGO_DB]
     users_collection = db[MONGO_COLLECTION]

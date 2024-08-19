@@ -35,7 +35,7 @@ def generate_txn_number():
     return txn_number
 
 
-@router.post("/google-login")
+@router.post("/google-login", tags=["Login & Registration"])
 async def google_login(request: GoogleLoginRequest, mongo_client=Depends(get_mongo_client)):
     try:
         db = mongo_client[MONGO_DB]  # Get the database
@@ -106,7 +106,7 @@ async def google_login(request: GoogleLoginRequest, mongo_client=Depends(get_mon
         raise HTTPException(status_code=500, detail=f"An internal error occurred: {str(e)}. Please try again later.")
 
 
-@router.post("/logout")
+@router.post("/logout", tags=["Login & Registration"])
 async def logout(request: LogoutRequest):
     try:
         # Invalidate the server-side session or token here

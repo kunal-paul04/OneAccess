@@ -1,6 +1,5 @@
 from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
 from pymongo import MongoClient
 from app.login import router as login_router
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,12 +15,12 @@ from app.elk_data import get_states_list, CountryRequest, StateRequest, get_dist
 app = FastAPI()
 
 
-@app.get("/")
+@app.get("/", tags=["Basic"])
 def read_root():
     return {"Hello": "FastSSO.git checkout "}
 
 
-@app.get("/migrate_users")
+@app.get("/migrate_users", tags=["Basic"])
 async def migrate_users_endpoint(
     mysql_db: Session = Depends(get_db),
     mongo_client: MongoClient = Depends(get_mongo_client)
@@ -48,8 +47,10 @@ app.include_router(register_router)
 # Include the login router
 app.include_router(login_router)
 
+
 # Include the router from user_info.py
 app.include_router(user_router)
+
 
 # Include the router from client_service.py
 app.include_router(client_router)
@@ -58,7 +59,7 @@ app.include_router(client_router)
 app.include_router(update_profile_router)
 
 
-@app.post("/states")
+@app.post("/states", tags=["ELK"])
 async def fetch_states(country_request: CountryRequest):
     response = get_states_list(country_request.country_id)
     if response.get("status") == 500:
@@ -70,7 +71,7 @@ async def fetch_states(country_request: CountryRequest):
     return {"states": states}
 
 
-@app.post("/districts")
+@app.post("/districts", tags=["ELK"])
 async def fetch_districts(state_request: StateRequest):
     response = get_district_list(state_request.state_id)
     print(response)

@@ -18,7 +18,7 @@ class UpdateProfileRequest(BaseModel):
     user_phone: int
 
 
-@router.put("/update-profile/{email}")
+@router.put("/update-profile/{email}", tags=["Update Details"])
 async def update_profile(email: str, profile_data: UpdateProfileRequest, mongo_client: MongoClient = Depends(get_mongo_client)):
     db = mongo_client[MONGO_DB]
     collection = db[MONGO_COLLECTION]
