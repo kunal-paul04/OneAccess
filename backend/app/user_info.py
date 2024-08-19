@@ -17,15 +17,20 @@ async def get_info(request: ProfileRequest, mongo_client=Depends(get_mongo_clien
     user = users_collection.find_one(
         {"user_email": request.email},
         {
+            "_id": 0,
             "unique_id": 1,
+            "user_email": 1,
             "name": 1,
-            "user_phone": 1,
-            "given_name": 1,
-            "family_name": 1,
-            "gender": 1,
+            "passkey": 1,
+            "profile_pic": 1,
+            "address": 1,
+            "city_id": 1,
+            "country_id": 1,
             "dob": 1,
-            "isprofileUpdated": 1,
-            "_id": 0
+            "gender": 1,
+            "state_id": 1,
+            "user_phone": 1,
+            "zip": 1
         }
     )
 
