@@ -18,6 +18,7 @@ MYSQL_DB = os.getenv("MYSQL_DB")
 MONGO_URI = os.getenv("MONGO_URI")
 MONGO_DB = os.getenv("MONGO_DB")
 MONGO_COLLECTION = os.getenv("MONGO_COLLECTION")
+MONGO_SERVICE_COLLECTION = os.getenv("MONGO_SERVICE_COLLECTION")
 
 # MySQL database setup
 DATABASE_URL = f"mysql+mysqlconnector://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DB}"

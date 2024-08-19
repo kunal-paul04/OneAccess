@@ -14,6 +14,7 @@ class ProfileRequest(BaseModel):
 async def get_info(request: ProfileRequest, mongo_client=Depends(get_mongo_client)):
     db = mongo_client[MONGO_DB]
     users_collection = db[MONGO_COLLECTION]
+
     user = users_collection.find_one(
         {"user_email": request.email},
         {

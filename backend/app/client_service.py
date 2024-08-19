@@ -1,18 +1,18 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from pydantic import BaseModel, EmailStr
-from app.database import get_mongo_client, MONGO_DB, MONGO_COLLECTION
+from app.database import get_mongo_client, MONGO_DB, MONGO_SERVICE_COLLECTION
 
 router = APIRouter()
 
 
-class  ClientServiceListRequest(BaseModel):
+class ClientServiceListRequest(BaseModel):
     client_email: EmailStr
 
 
 @router.post("/get_services")
 async def get_service_list(request: ClientServiceListRequest, mongo_client=Depends(get_mongo_client)):
     db = mongo_client[MONGO_DB]  # Get the database
-    service_collection = db['client_services']
+    service_collection = db[MONGO_SERVICE_COLLECTION]
 
     if not request.client_email:
         raise HTTPException(status_code=400, detail="Client's email is required")
