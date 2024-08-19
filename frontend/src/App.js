@@ -4,6 +4,8 @@ import Login from './Login';
 import Dashboard from './Dashboard';
 import Register from './Register';
 import Profile from './Profile';
+import Services from './Services';
+// import AddService from './AddService';
 
 function App() {
   return (
@@ -14,6 +16,9 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/services" element={<Services />} />
+          {/* <Route path="/addservice" element={<AddService />} /> */}
+          
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>

@@ -1,0 +1,60 @@
+.services-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.services-table th,
+.services-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.services-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    text-align: center;
+}
+
+.services-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.services-table tr:hover {
+    background-color: #f1f1f1;
+}
+
+.services-table button {
+    background-color: #ffcc00;
+    border: none;
+    padding: 5px 10px;
+    margin-right: 5px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.services-table button:hover {
+    background-color: #e6b800;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.add-service-btn {
+    padding: 8px 16px;
+    background-color: #f48024;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.add-service-btn:hover {
+    background-color: #e5681e;
+}

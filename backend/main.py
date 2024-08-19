@@ -8,6 +8,7 @@ from app.database import get_db, get_mongo_client
 from app.migrate_users import migrate_users
 from app.register import router as register_router
 from app.user_info import router as user_router
+from app.client_service import router as client_router
 
 app = FastAPI()
 
@@ -46,3 +47,6 @@ app.include_router(login_router)
 
 # Include the router from user_info.py
 app.include_router(user_router)
+
+# Include the router from client_service.py
+app.include_router(client_router)
