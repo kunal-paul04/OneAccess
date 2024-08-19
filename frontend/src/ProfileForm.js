@@ -77,7 +77,7 @@ const ProfileForm = ({
             <label>Name:</label>
             <input
               type="text"
-              value={userName}
+              value={userName || ''}
               disabled
             />
           </div>
@@ -85,7 +85,7 @@ const ProfileForm = ({
             <label>Email:</label>
             <input
               type="email"
-              value={email}
+              value={email || ''}
               disabled
             />
           </div>
@@ -93,7 +93,7 @@ const ProfileForm = ({
             <label>Mobile No.:</label>
             <input
               type="text"
-              value={phone}
+              value={phone || ''}
               onChange={(e) => setPhone(e.target.value)}
             />
           </div>
@@ -101,7 +101,7 @@ const ProfileForm = ({
             <label>Date of Birth:</label>
             <input
               type="date"
-              value={dob}
+              value={dob || ''}
               onChange={(e) => setDob(e.target.value)}
             />
           </div>
@@ -109,7 +109,7 @@ const ProfileForm = ({
             <label>Gender:</label>
             <select
               className="form-control"
-              value={gender}
+              value={gender || ''}
               onChange={(e) => setGender(e.target.value)}
             >
               <option value="">Select Gender</option>
@@ -122,21 +122,20 @@ const ProfileForm = ({
             <label>Country:</label>
             <select
               className="form-control"
-              value={country}
+              value={country || ''}
               onChange={(e) => setCountry(e.target.value)}
             >
               <option value="">Select Country</option>
               <option value="99">India</option>
-              {/* Add more countries if needed */}
             </select>
           </div>
           <div className="form-group">
             <label>State:</label>
             <select
               className="form-control"
-              value={state}
+              value={state || ''}
               onChange={(e) => setState(e.target.value)}
-              disabled={!states.length} // Disable if no states are available
+              disabled={!states.length}
             >
               <option value="">Select State</option>
               {states.map((state) => (
@@ -150,7 +149,7 @@ const ProfileForm = ({
             <label>District:</label>
             <select
               className="form-control"
-              value={district}
+              value={district || ''}
               onChange={(e) => setDistrict(e.target.value)}
               disabled={!districts.length} // Disable if no districts are available
             >
@@ -166,14 +165,14 @@ const ProfileForm = ({
             <label>ZIP Code:</label>
             <input
               type="text"
-              value={zip}
+              value={zip || ''}
               onChange={(e) => setZip(e.target.value)}
             />
           </div>
           <div className="form-group">
             <label>Address:</label>
             <textarea
-              value={address}
+              value={address || ''}
               onChange={(e) => setAddress(e.target.value)}
               rows="4"
               className="textarea"

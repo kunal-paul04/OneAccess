@@ -14,17 +14,47 @@ const Profile = () => {
     const [district, setDistrict] = useState('');
     const [zip, setZip] = useState('');
     const [address, setAddress] = useState('');
-    //const [isProfileUpdated, setIsProfileUpdated] = useState(false);
 
     useEffect(() => {
         const userSession = getUserSession();
-
+        
         if (userSession) {
             setUserName(userSession.name || '');
             setEmail(userSession.email || '');
         }
+        
+        // Fetch profile data
+        const fetchProfileData = async () => {
+            try {
+                const response = await fetch('http://localhost:8000/get_profile', {
+                    method: 'POST',
+                    headers: {
+                        'accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email: userSession?.email || '' })
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    setPhone(data.user_phone || '');
+                    setDob(data.dob || '');
+                    setGender(data.gender || '');
+                    setCountry(data.country_id || '');
+                    setState(data.state_id || '');
+                    setDistrict(data.city_id || '');
+                    setZip(data.zip || '');
+                    setAddress(data.address || '');
+                } else {
+                    console.error('Failed to fetch profile data:', data);
+                }
+            } catch (error) {
+                console.error('Error fetching profile data:', error);
+            }
+        };
+        
+        fetchProfileData();
     }, []);
-
 
     const handleSubmit = async (e) => {
         e.preventDefault();
