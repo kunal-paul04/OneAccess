@@ -8,7 +8,7 @@ from app.google_auth import router as google_auth_router
 from app.database import get_db, get_mongo_client
 from app.migrate_users import migrate_users
 from app.register import router as register_router
-from app.user_info import router as user_router, graphql_router
+from app.user_info import router as user_router
 from app.update_profile import router as update_profile_router
 from app.elk_data import get_states_list, CountryRequest, StateRequest, get_district_list
 
@@ -51,8 +51,6 @@ app.include_router(login_router)
 # Include the router from user_info.py
 app.include_router(user_router)
 
-# Include the GraphQL endpoint
-app.add_route("/userInfo_graphql", graphql_router)
 
 # Include the router from update_profile.py
 app.include_router(update_profile_router)

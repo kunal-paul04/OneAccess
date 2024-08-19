@@ -16,7 +16,6 @@ class UpdateProfileRequest(BaseModel):
     zip: str
     address: str
     user_phone: int
-    # isprofileUpdated: 1
 
 
 @router.put("/update-profile/{email}")
@@ -31,6 +30,8 @@ async def update_profile(email: str, profile_data: UpdateProfileRequest, mongo_c
 
     # Prepare update data
     update_data = {k: v for k, v in profile_data.dict().items() if v is not None}
+
+    update_data['isprofileUpdated'] = 1
 
     # Update the user's profile
     result = collection.update_one({"user_email": email}, {"$set": update_data})
