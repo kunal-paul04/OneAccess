@@ -16,7 +16,7 @@ class UpdateProfileRequest(BaseModel):
     zip: str
     address: str
     user_phone: int
-    isprofileUpdated: 1
+    # isprofileUpdated: 1
 
 
 @router.put("/update-profile/{email}")
