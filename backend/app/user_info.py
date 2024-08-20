@@ -38,4 +38,9 @@ async def get_info(request: ProfileRequest, mongo_client=Depends(get_mongo_clien
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
-    return {"success": True, "data": user}
+    return {
+        "success": True,
+        "status_code": 200,
+        "message": "User profile retrieved successfully",
+        "data": user
+    }
