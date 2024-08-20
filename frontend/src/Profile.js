@@ -198,7 +198,7 @@ const Profile = () => {
                                 type="text"
                                 value={phone || ''}
                                 onChange={(e) => setPhone(e.target.value)}
-                                disabled={!!phone}
+                                
                             />
                         </div>
                         <div className="form-group">
@@ -207,7 +207,7 @@ const Profile = () => {
                                 type="date"
                                 value={dob || ''}
                                 onChange={(e) => setDob(e.target.value)}
-                                disabled={!!dob}
+                                
                             />
                         </div>
                         <div className="form-group">
@@ -216,7 +216,7 @@ const Profile = () => {
                                 className="form-control"
                                 value={gender || ''}
                                 onChange={(e) => setGender(e.target.value)}
-                                disabled={!!gender}
+                                
                             >
                                 <option value="">Select Gender</option>
                                 <option value="Male">Male</option>
@@ -230,7 +230,7 @@ const Profile = () => {
                                 className="form-control"
                                 value={country || ''}
                                 onChange={(e) => setCountry(e.target.value)}
-                                disabled={!!country}
+                                
                             >
                                 <option value="">Select Country</option>
                                 <option value="99">India</option>
@@ -242,7 +242,7 @@ const Profile = () => {
                                 className="form-control"
                                 value={state || ''}
                                 onChange={(e) => setState(e.target.value)}
-                                disabled={!!state}
+                                
                             >
                                 <option value="">Select State</option>
                                 {states.map((state) => (
@@ -258,7 +258,7 @@ const Profile = () => {
                                 className="form-control"
                                 value={district || ''}
                                 onChange={(e) => setDistrict(e.target.value)}
-                                disabled={!!district}
+                                
                             >
                                 <option value="">Select District</option>
                                 {districts.map((district) => (
@@ -274,7 +274,7 @@ const Profile = () => {
                                 type="text"
                                 value={zip || ''}
                                 onChange={(e) => setZip(e.target.value)}
-                                disabled={!!zip}
+                                
                             />
                         </div>
                         <div className="form-group">
@@ -284,7 +284,7 @@ const Profile = () => {
                                 onChange={(e) => setAddress(e.target.value)}
                                 rows="4"
                                 className="textarea"
-                                disabled={!!address}
+                               
                             />
                         </div>
                     </div>
