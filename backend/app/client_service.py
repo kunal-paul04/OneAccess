@@ -60,11 +60,11 @@ async def add_client_service(request: ClientServiceAddRequest, mongo_client=Depe
     if not request.app_key:
         raise HTTPException(status_code=400, detail="App Key is required")
     if not request.service_name:
-        raise HTTPException(status_code=400, detail="App Key is required")
+        raise HTTPException(status_code=400, detail="Service name is required")
     if not request.service_domain:
-        raise HTTPException(status_code=400, detail="App Key is required")
+        raise HTTPException(status_code=400, detail="Service domain required")
     if not request.service_uri:
-        raise HTTPException(status_code=400, detail="App Key is required")
+        raise HTTPException(status_code=400, detail="Redirect URI is required")
 
     service_data = {
         "service_name": request.service_name,
