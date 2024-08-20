@@ -16,7 +16,10 @@ class ClientServiceListRequest(BaseModel):
 
 class ClientServiceAddRequest(BaseModel):
     client_email: EmailStr
+    app_key: str
+    service_name: str
     service_domain: str
+    service_uri: str
 
 
 class ClientCreateRequest(BaseModel):
@@ -34,11 +37,11 @@ async def get_service_list(request: ClientServiceListRequest, mongo_client=Depen
     # Check and fetch a list of services
     services = list(service_collection.find({"client_email": request.client_email}, {
         "_id": 0,  # Exclude the MongoDB ObjectID from the results
-        "domain": 1,
-        "app_name": 1,
-        "service_id": 1,
-        "callback_url": 1,
-        "last_modified": 1,
+        "service_domain": 1,
+        "service_name": 1,
+        "app_key": 1,
+        "service_uri": 1,
+        "created_at": 1,
     }))
 
     if not services:
@@ -55,6 +58,12 @@ async def add_client_service(request: ClientServiceAddRequest, mongo_client=Depe
     if not request.client_email:
         raise HTTPException(status_code=400, detail="Client's email is required")
     if not request.app_key:
+        raise HTTPException(status_code=400, detail="App Key is required")
+    if not request.service_name:
+        raise HTTPException(status_code=400, detail="App Key is required")
+    if not request.service_domain:
+        raise HTTPException(status_code=400, detail="App Key is required")
+    if not request.service_uri:
         raise HTTPException(status_code=400, detail="App Key is required")
 
     service_data = {
