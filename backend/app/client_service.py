@@ -2,6 +2,7 @@ import time
 import secrets
 import hashlib
 from uuid import uuid4
+from datetime import datetime
 from pydantic import BaseModel, EmailStr
 from fastapi import APIRouter, HTTPException, Depends, status
 from app.database import get_mongo_client, MONGO_DB, MONGO_SERVICE_COLLECTION
@@ -95,9 +96,21 @@ async def generate_client_id(request: ClientServiceListRequest, mongo_client=Dep
 
     app_secret = secrets.token_hex(40)
 
+    client_data = {
+        "client_email": request.client_email,
+        "app_key": app_key,
+        "app_secret": app_secret,
+        "created_at": datetime.now().strftime('%d-%m-%Y %H:%M:%S')
+    }
+    try:
+        service_collection.insert_one(client_data)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to insert data into the database")
+
     return {
         "success": True,
-        "message": "Unique App Key generated successfully!",
-        "Application_Key": app_key,
-        "Application_Secret": app_secret
+        "status_code": 200,
+        "message": "Unique App Key generated and inserted successfully!",
+        "app_key": app_key,
+        "app_secret": app_secret
     }
