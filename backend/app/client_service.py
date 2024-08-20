@@ -54,26 +54,20 @@ async def add_client_service(request: ClientServiceAddRequest, mongo_client=Depe
 
     if not request.client_email:
         raise HTTPException(status_code=400, detail="Client's email is required")
-
-    # Check if the user already exists
-    existing_app = service_collection.find_one({"app_key": request.app_key})
-    if existing_app:
-        raise HTTPException(status_code=400, detail="App Key already exists")
+    if not request.app_key:
+        raise HTTPException(status_code=400, detail="App Key is required")
 
     service_data = {
-        "client_email": request.client_email,
         "service_name": request.service_name,
         "service_domain": request.service_domain,
         "service_uri": request.service_uri,
-        "app_key": request.app_key,
-        "app_secret": request.app_secret,
-        "updation_date": request.client_email
+        "is_approved": 0
     }
-    result = service_collection.insert_one(service_data)
-    if result.inserted_id:
-        return {"success": True, "status_code": 200, "message": "Service registered successfully"}
+    result = service_collection.update_one({"client_email": request.client_email, "app_key": request.app_key}, {"$set": service_data})
+    if result.modified_count == 0:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No changes were made")
     else:
-        raise HTTPException(status_code=500, detail="Service registration failed")
+        return {"success": True, "status_code": 200, "message": "Service registered successfully"}
 
 
 # Endpoint to generate and store client_id and client_secret
@@ -95,12 +89,13 @@ async def generate_client_id(request: ClientServiceListRequest, mongo_client=Dep
             break
 
     app_secret = secrets.token_hex(40)
+    created_at = datetime.now().strftime('%d-%m-%Y %H:%M:%S')
 
     client_data = {
         "client_email": request.client_email,
         "app_key": app_key,
         "app_secret": app_secret,
-        "created_at": datetime.now().strftime('%d-%m-%Y %H:%M:%S')
+        "created_at": created_at
     }
     try:
         service_collection.insert_one(client_data)
@@ -112,5 +107,6 @@ async def generate_client_id(request: ClientServiceListRequest, mongo_client=Dep
         "status_code": 200,
         "message": "Unique App Key generated and inserted successfully!",
         "app_key": app_key,
-        "app_secret": app_secret
+        "app_secret": app_secret,
+        "created_at": created_at
     }
