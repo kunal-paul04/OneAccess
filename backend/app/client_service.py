@@ -51,20 +51,20 @@ async def generate_client_id(request: ClientServiceListRequest, mongo_client=Dep
     if not request.client_email:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Client email is required!")
 
-    # Generate unique client_id and ensure it's not in use
+    # Generate unique app_key and ensure it's not in use
     while True:
         combine_data = f"{uuid4()}_{time.time()}_{secrets.token_hex(16)}"
-        client_id_hash = hashlib.sha256(combine_data.encode()).hexdigest()
-        client_id = '-'.join(client_id_hash[i:i + 8] for i in range(0, len(client_id_hash), 8))
-        existing_client = service_collection.find_one({"client_id": client_id})
+        appkey_hash = hashlib.sha256(combine_data.encode()).hexdigest()
+        app_key = '-'.join(appkey_hash[i:i + 8] for i in range(0, len(appkey_hash), 8))
+        existing_client = service_collection.find_one({"app_key": app_key})
         if not existing_client:
             break
 
-    client_secret = secrets.token_hex(40)
+    app_secret = secrets.token_hex(40)
 
     return {
         "success": True,
-        "message": "Unique client ID generated successfully!",
-        "client_id": client_id,
-        "client_secret": client_secret
+        "message": "Unique App Key generated successfully!",
+        "Application_Key": app_key,
+        "Application_Secret": app_secret
     }
