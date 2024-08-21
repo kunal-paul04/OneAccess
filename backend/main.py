@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy.orm import Session
 from pymongo import MongoClient
 from app.login import router as login_router
-from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.cors import CORSMiddleware
 from app.google_auth import router as google_auth_router
 from app.database import get_db, get_mongo_client
 from app.migrate_users import migrate_users
@@ -27,16 +27,6 @@ async def migrate_users_endpoint(
 ):
     return await migrate_users(mysql_db, mongo_client)
 
-
-# Allow CORS for development
-app.add_middleware(
-    CORSMiddleware,
-    # allow_origins=["http://localhost:3000","https://adequate-renewed-hen.ngrok-free.app/","https://adequate-renewed-hen.ngrok-free.app/"],
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 # Include the Google auth router
 app.include_router(google_auth_router)
@@ -82,3 +72,13 @@ async def fetch_districts(state_request: StateRequest):
     districts = [hit["_source"]["name"] for hit in response.get("hits", {}).get("hits", [])]
 
     return {"districts": districts}
+
+
+# Allow CORS for development
+app.add_middleware(
+    CORSMiddleware,  # type: ignore
+    allow_origins=["*"],  # ["http://localhost:3000","https://adequate-renewed-hen.ngrok-free.app/"]
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
