@@ -14,7 +14,19 @@ class ClientServiceListRequest(BaseModel):
     client_email: EmailStr
 
 
-@router.post("/get_services", tags=["Client Management"])
+class ClientServiceAddRequest(BaseModel):
+    client_email: EmailStr
+    app_key: str
+    service_name: str
+    service_domain: str
+    service_uri: str
+
+
+class ClientCreateRequest(BaseModel):
+    client_email: EmailStr
+
+
+@router.post("/get_services", tags=["Service Management"])
 async def get_service_list(request: ClientServiceListRequest, mongo_client=Depends(get_mongo_client)):
     db = mongo_client[MONGO_DB]  # Get the database
     service_collection = db[MONGO_SERVICE_COLLECTION]
@@ -25,11 +37,11 @@ async def get_service_list(request: ClientServiceListRequest, mongo_client=Depen
     # Check and fetch a list of services
     services = list(service_collection.find({"client_email": request.client_email}, {
         "_id": 0,  # Exclude the MongoDB ObjectID from the results
-        "domain": 1,
-        "app_name": 1,
-        "service_id": 1,
-        "callback_url": 1,
-        "last_modified": 1,
+        "service_domain": 1,
+        "service_name": 1,
+        "app_key": 1,
+        "service_uri": 1,
+        "created_at": 1,
     }))
 
     if not services:
@@ -38,13 +50,37 @@ async def get_service_list(request: ClientServiceListRequest, mongo_client=Depen
     return {"success": True, "message": "Service found", "service_details": services}
 
 
-# Pydantic model for creating a client
-class ClientCreateRequest(BaseModel):
-    client_email: EmailStr
+@router.post("/add_service", tags=["Service Management"])
+async def add_client_service(request: ClientServiceAddRequest, mongo_client=Depends(get_mongo_client)):
+    db = mongo_client[MONGO_DB]  # Get the database
+    service_collection = db[MONGO_SERVICE_COLLECTION]
+
+    if not request.client_email:
+        raise HTTPException(status_code=400, detail="Client's email is required")
+    if not request.app_key:
+        raise HTTPException(status_code=400, detail="App Key is required")
+    if not request.service_name:
+        raise HTTPException(status_code=400, detail="Service name is required")
+    if not request.service_domain:
+        raise HTTPException(status_code=400, detail="Service domain required")
+    if not request.service_uri:
+        raise HTTPException(status_code=400, detail="Redirect URI is required")
+
+    service_data = {
+        "service_name": request.service_name,
+        "service_domain": request.service_domain,
+        "service_uri": request.service_uri,
+        "is_approved": 0
+    }
+    result = service_collection.update_one({"client_email": request.client_email, "app_key": request.app_key}, {"$set": service_data})
+    if result.modified_count == 0:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No changes were made")
+    else:
+        return {"success": True, "status_code": 200, "message": "Service registered successfully"}
 
 
 # Endpoint to generate and store client_id and client_secret
-@router.post("/generate_client", tags=["Client Management"])
+@router.post("/generate_client", tags=["Service Management"])
 async def generate_client_id(request: ClientServiceListRequest, mongo_client=Depends(get_mongo_client)):
     db = mongo_client[MONGO_DB]
     service_collection = db[MONGO_SERVICE_COLLECTION]
@@ -62,12 +98,13 @@ async def generate_client_id(request: ClientServiceListRequest, mongo_client=Dep
             break
 
     app_secret = secrets.token_hex(40)
+    created_at = datetime.now().strftime('%d-%m-%Y %H:%M:%S')
 
     client_data = {
         "client_email": request.client_email,
         "app_key": app_key,
         "app_secret": app_secret,
-        "created_at": datetime.now().strftime('%d-%m-%Y %H:%M:%S')
+        "created_at": created_at
     }
     try:
         service_collection.insert_one(client_data)
@@ -79,5 +116,6 @@ async def generate_client_id(request: ClientServiceListRequest, mongo_client=Dep
         "status_code": 200,
         "message": "Unique App Key generated and inserted successfully!",
         "app_key": app_key,
-        "app_secret": app_secret
+        "app_secret": app_secret,
+        "created_at": created_at
     }

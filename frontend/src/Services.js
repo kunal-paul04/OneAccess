@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import DashboardLayout from './DashboardLayout';
 import { getUserSession } from './utils/authUtils';
 import './Services.css';
@@ -7,6 +7,7 @@ const Services = () => {
     const [userName, setUserName] = useState('');
     const [services, setServices] = useState([]);
     const [error, setError] = useState(null);
+    const fetchTriggeredRef = useRef(false);  // Use ref to track if the fetch has been triggered
 
     useEffect(() => {
         const userSession = getUserSession(); // Get user session
@@ -16,7 +17,9 @@ const Services = () => {
         }
 
         // Fetch services data from FastAPI backend
-        if (userSession && userSession.email) {
+        if (!fetchTriggeredRef.current && userSession && userSession.email) {
+            fetchTriggeredRef.current = true;  // Set ref to true to prevent future triggers
+
             fetch(`${process.env.REACT_APP_BACKEND_URL}/get_services`, {
                 method: 'POST',
                 headers: {
@@ -51,8 +54,8 @@ const Services = () => {
                 <table className="services-table">
                     <thead>
                         <tr>
-                            <th>Website URL/App Domain</th>
-                            <th>App Name | Tag</th>
+                            <th>App Name</th>
+                            <th>Service Domain</th>
                             <th>Client ID</th>
                             <th>Call Back URL (URI)</th>
                             <th>Modified Date</th>
@@ -78,8 +81,8 @@ const Services = () => {
             <table className="services-table">
                 <thead>
                     <tr>
-                        <th>Website URL/App Domain</th>
-                        <th>App Name | Tag</th>
+                        <th>App Name</th>
+                        <th>Service Domain</th>
                         <th>Client ID</th>
                         <th>Call Back URL (URI)</th>
                         <th>Modified Date</th>
@@ -89,11 +92,11 @@ const Services = () => {
                 <tbody>
                     {services.map((service, index) => (
                         <tr key={index}>
-                            <td>{service.website_url}</td>
-                            <td>{service.app_name}</td>
-                            <td>{service.client_id}</td>
-                            <td>{service.callback_url}</td>
-                            <td>{service.modified_date}</td>
+                            <td>{service.service_name}</td>
+                            <td>{service.service_domain}</td>
+                            <td>{service.app_key}</td>
+                            <td>{service.service_uri}</td>
+                            <td>{service.created_at}</td>
                             <td>
                                 <button>Edit</button>
                                 <button>View</button>
