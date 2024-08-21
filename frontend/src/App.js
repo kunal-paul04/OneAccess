@@ -6,6 +6,7 @@ import Register from './Register';
 import Profile from './Profile';
 import Services from './Services';
 import AddService from './AddService';
+import ViewService from './ViewService';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/services" element={<Services />} />
           <Route path="/addservice" element={<AddService />} />
+          <Route path="/viewservice" element={<ViewService />} />
           
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

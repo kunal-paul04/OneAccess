@@ -6,6 +6,7 @@ from datetime import datetime
 from pydantic import BaseModel, EmailStr
 from fastapi import APIRouter, HTTPException, Depends, status
 from app.database import get_mongo_client, MONGO_DB, MONGO_SERVICE_COLLECTION
+import base64
 
 router = APIRouter()
 
@@ -24,6 +25,10 @@ class ClientServiceAddRequest(BaseModel):
 
 class ClientCreateRequest(BaseModel):
     client_email: EmailStr
+
+
+class ClientServiceAppRequest(BaseModel):
+    client_id: str
 
 
 @router.post("/get_services", tags=["Service Management"])
@@ -119,3 +124,33 @@ async def generate_client_id(request: ClientServiceListRequest, mongo_client=Dep
         "app_secret": app_secret,
         "created_at": created_at
     }
+
+
+@router.post("/fetch_client", tags=["Service Management"])
+async def fetch_client_detail(request: ClientServiceAppRequest, mongo_client=Depends(get_mongo_client)):
+    db = mongo_client[MONGO_DB]
+    service_collection = db[MONGO_SERVICE_COLLECTION]
+
+    if not request.client_id:
+        raise HTTPException(status_code=400, detail="APP Key is required")
+
+    try:
+        # Decode the client_id
+        decoded_client_id = base64.urlsafe_b64decode(request.client_id + '==').decode('utf-8')
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Invalid client_id format")
+
+    # Check and fetch a list of services
+    services = list(service_collection.find({"app_key": decoded_client_id}, {
+        "_id": 0,  # Exclude the MongoDB ObjectID from the results
+        "service_domain": 1,
+        "service_name": 1,
+        "app_key": 1,
+        "service_uri": 1,
+        "created_at": 1,
+    }))
+
+    if not services:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Service not found!")
+
+    return {"success": True, "status_code": 200, "message": "Service found", "service_details": services}

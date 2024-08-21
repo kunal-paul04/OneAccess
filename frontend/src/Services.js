@@ -99,7 +99,7 @@ const Services = () => {
                             <td>{service.created_at}</td>
                             <td>
                                 <button>Edit</button>
-                                <button>View</button>
+                                <button onClick={() => window.location.href = `/ViewService?client_id=${encodeURIComponent(service.app_key)}`}>View</button>
                             </td>
                         </tr>
                     ))}
