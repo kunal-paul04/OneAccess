@@ -76,7 +76,7 @@ const Services = () => {
         <DashboardLayout userName={userName}>
             <div className="page-header">
                 <h5 className="page-tag">Home &gt; Services</h5>
-                <button className="add-service-btn">+ Add New Service</button>
+                <a href="/AddService"><button className="add-service-btn">+ Add New Service</button></a>
             </div>
             <table className="services-table">
                 <thead>

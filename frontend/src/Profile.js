@@ -18,6 +18,16 @@ const Profile = () => {
     const [districts, setDistricts] = useState([]);
     const [loading, setLoading] = useState(true); // Loading state
 
+    const [isPhoneReadOnly, setIsPhoneReadOnly] = useState(false);
+    const [isDobReadOnly, setIsDobReadOnly] = useState(false);
+    const [isGenderReadOnly, setIsGenderReadOnly] = useState(false);
+    const [isCountryReadOnly, setIsCountryReadOnly] = useState(false);
+    const [isStateReadOnly, setIsStateReadOnly] = useState(false);
+    const [isDistrictReadOnly, setIsDistrictReadOnly] = useState(false);
+    const [isZipReadOnly, setIsZipReadOnly] = useState(false);
+    const [isAddressReadOnly, setIsAddressReadOnly] = useState(false);
+
+
     const hasFetchedProfile = useRef(false);
 
     useEffect(() => {
@@ -55,6 +65,16 @@ const Profile = () => {
                         setDistrict(userData.city_id || '');
                         setZip(userData.zip || '');
                         setAddress(userData.address || '');
+
+                        // Disable fields if they have data
+                        if (userData.user_phone) setIsPhoneReadOnly(true);
+                        if (userData.dob) setIsDobReadOnly(true);
+                        if (userData.gender) setIsGenderReadOnly(true);
+                        if (userData.country_id) setIsCountryReadOnly(true);
+                        if (userData.state_id) setIsStateReadOnly(true);
+                        if (userData.city_id) setIsDistrictReadOnly(true);
+                        if (userData.zip) setIsZipReadOnly(true);
+                        if (userData.address) setIsAddressReadOnly(true);
                     } else {
                         console.error('Failed to fetch profile data:', data);
                     }
@@ -155,6 +175,7 @@ const Profile = () => {
 
             if (response.ok) {
                 alert("Profile updated successfully!");
+                window.location.href = "/profile";
             } else {
                 alert(`Error: ${responseBody.detail}`);
             }
@@ -181,7 +202,7 @@ const Profile = () => {
                             <input
                                 type="text"
                                 value={userName || ''}
-                                disabled
+                                readOnly
                             />
                         </div>
                         <div className="form-group">
@@ -189,7 +210,7 @@ const Profile = () => {
                             <input
                                 type="email"
                                 value={email || ''}
-                                disabled
+                                readOnly
                             />
                         </div>
                         <div className="form-group">
@@ -198,7 +219,7 @@ const Profile = () => {
                                 type="text"
                                 value={phone || ''}
                                 onChange={(e) => setPhone(e.target.value)}
-                                
+                                readOnly={isPhoneReadOnly}
                             />
                         </div>
                         <div className="form-group">
@@ -207,7 +228,7 @@ const Profile = () => {
                                 type="date"
                                 value={dob || ''}
                                 onChange={(e) => setDob(e.target.value)}
-                                
+                                readOnly={isDobReadOnly}
                             />
                         </div>
                         <div className="form-group">
@@ -216,7 +237,7 @@ const Profile = () => {
                                 className="form-control"
                                 value={gender || ''}
                                 onChange={(e) => setGender(e.target.value)}
-                                
+                                disabled={isGenderReadOnly}
                             >
                                 <option value="">Select Gender</option>
                                 <option value="Male">Male</option>
@@ -230,7 +251,7 @@ const Profile = () => {
                                 className="form-control"
                                 value={country || ''}
                                 onChange={(e) => setCountry(e.target.value)}
-                                
+                                disabled={isCountryReadOnly}
                             >
                                 <option value="">Select Country</option>
                                 <option value="99">India</option>
@@ -242,7 +263,7 @@ const Profile = () => {
                                 className="form-control"
                                 value={state || ''}
                                 onChange={(e) => setState(e.target.value)}
-                                
+                                disabled={isStateReadOnly}
                             >
                                 <option value="">Select State</option>
                                 {states.map((state) => (
@@ -258,7 +279,7 @@ const Profile = () => {
                                 className="form-control"
                                 value={district || ''}
                                 onChange={(e) => setDistrict(e.target.value)}
-                                
+                                disabled={isDistrictReadOnly}
                             >
                                 <option value="">Select District</option>
                                 {districts.map((district) => (
@@ -274,7 +295,7 @@ const Profile = () => {
                                 type="text"
                                 value={zip || ''}
                                 onChange={(e) => setZip(e.target.value)}
-                                
+                                readOnly={isZipReadOnly}
                             />
                         </div>
                         <div className="form-group">
@@ -284,7 +305,7 @@ const Profile = () => {
                                 onChange={(e) => setAddress(e.target.value)}
                                 rows="4"
                                 className="textarea"
-                               
+                                readOnly={isAddressReadOnly}
                             />
                         </div>
                     </div>
