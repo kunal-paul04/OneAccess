@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import DashboardLayout from './DashboardLayout';
-import ProfileForm from './ProfileForm';
+import './Profile.css';
 import { getUserSession } from './utils/authUtils';
 
 const Profile = () => {
@@ -14,47 +14,120 @@ const Profile = () => {
     const [district, setDistrict] = useState('');
     const [zip, setZip] = useState('');
     const [address, setAddress] = useState('');
+    const [states, setStates] = useState([]);
+    const [districts, setDistricts] = useState([]);
+    const [loading, setLoading] = useState(true); // Loading state
+
+    const hasFetchedProfile = useRef(false);
 
     useEffect(() => {
         const userSession = getUserSession();
-        
+
         if (userSession) {
             setUserName(userSession.name || '');
             setEmail(userSession.email || '');
         }
-        
-        // Fetch profile data
-        const fetchProfileData = async () => {
-            try {
-                const response = await fetch('http://localhost:8000/get_profile', {
-                    method: 'POST',
-                    headers: {
-                        'accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ email: userSession?.email || '' })
-                });
-                const data = await response.json();
-                
-                if (response.ok) {
-                    setPhone(data.user_phone || '');
-                    setDob(data.dob || '');
-                    setGender(data.gender || '');
-                    setCountry(data.country_id || '');
-                    setState(data.state_id || '');
-                    setDistrict(data.city_id || '');
-                    setZip(data.zip || '');
-                    setAddress(data.address || '');
-                } else {
-                    console.error('Failed to fetch profile data:', data);
+
+        // Fetch profile data only if it hasn't been fetched yet
+        if (!hasFetchedProfile.current) {
+            hasFetchedProfile.current = true; // Set the ref to true
+            const fetchProfileData = async () => {
+                try {
+                    const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/get_profile`, {
+                        method: 'POST',
+                        headers: {
+                            'accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ email: userSession?.email || '' })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.status_code === 200) {
+                        const userData = data.data;
+
+                        setPhone(userData.user_phone || '');
+                        setDob(userData.dob || '');
+                        setGender(userData.gender || '');
+                        setCountry(userData.country_id || '');
+                        setState(userData.state_id || '');
+                        setDistrict(userData.city_id || '');
+                        setZip(userData.zip || '');
+                        setAddress(userData.address || '');
+                    } else {
+                        console.error('Failed to fetch profile data:', data);
+                    }
+                } catch (error) {
+                    console.error('Error fetching profile data:', error);
+                } finally {
+                    setLoading(false); // Set loading to false once data is fetched
                 }
-            } catch (error) {
-                console.error('Error fetching profile data:', error);
-            }
-        };
-        
-        fetchProfileData();
+            };
+
+            fetchProfileData();
+        } else {
+            setLoading(false); // Ensure loading is set to false if already fetched
+        }
     }, []);
+
+    useEffect(() => {
+        if (country) {
+            // Fetch states when country is selected
+            fetch(`${process.env.REACT_APP_BACKEND_URL}/states`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'accept': 'application/json'
+                },
+                body: JSON.stringify({ country_id: country })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.states) {
+                        setStates(data.states.map((state, index) => ({ id: index + 1, name: state })));
+                    } else {
+                        setStates([]);
+                        console.error('States data is not in the expected format:', data);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching states:', error);
+                    setStates([]);
+                });
+        } else {
+            setStates([]);
+        }
+    }, [country]);
+
+    useEffect(() => {
+        if (state) {
+            // Fetch districts when state is selected
+            fetch(`${process.env.REACT_APP_BACKEND_URL}/districts`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'accept': 'application/json'
+                },
+                body: JSON.stringify({ state_id: state })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.districts) {
+                        setDistricts(data.districts.map((district, index) => ({ id: index + 1, name: district })));
+                    } else {
+                        setDistricts([]);
+                        console.error('Districts data is not in the expected format:', data);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching districts:', error);
+                    setDistricts([]);
+                });
+        } else {
+            setDistricts([]);
+        }
+    }, [state]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -71,16 +144,14 @@ const Profile = () => {
         };
 
         try {
-            const response = await fetch(`http://localhost:8000/update-profile/${email}`, {
+            const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/update-profile/${email}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(profileData),
             });
-            console.log('Response Status:', response.status);
             const responseBody = await response.json();
-            console.log('Response Body:', responseBody);
 
             if (response.ok) {
                 alert("Profile updated successfully!");
@@ -93,30 +164,133 @@ const Profile = () => {
         }
     };
 
+    // Render loading state until profile data is fetched
+    if (loading) {
+        return <div>Loading...</div>;
+    }
+
     return (
         <DashboardLayout userName={userName}>
             <h5 className="page-tag">Home &gt; Profile</h5>
-            <ProfileForm
-                userName={userName}
-                email={email}
-                phone={phone}
-                dob={dob}
-                gender={gender}
-                country={country}
-                state={state}
-                district={district}
-                zip={zip}
-                address={address}
-                setDob={setDob}
-                setPhone={setPhone}
-                setGender={setGender}
-                setCountry={setCountry}
-                setState={setState}
-                setDistrict={setDistrict}
-                setZip={setZip}
-                setAddress={setAddress}
-                handleSubmit={handleSubmit}
-            />
+            <div className="profile-form">
+                <h2 className="section-heading">Personal Information</h2>
+                <form onSubmit={handleSubmit}>
+                    <div className="form-grid">
+                        <div className="form-group">
+                            <label>Name:</label>
+                            <input
+                                type="text"
+                                value={userName || ''}
+                                disabled
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Email:</label>
+                            <input
+                                type="email"
+                                value={email || ''}
+                                disabled
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Mobile No.:</label>
+                            <input
+                                type="text"
+                                value={phone || ''}
+                                onChange={(e) => setPhone(e.target.value)}
+                                
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Date of Birth:</label>
+                            <input
+                                type="date"
+                                value={dob || ''}
+                                onChange={(e) => setDob(e.target.value)}
+                                
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Gender:</label>
+                            <select
+                                className="form-control"
+                                value={gender || ''}
+                                onChange={(e) => setGender(e.target.value)}
+                                
+                            >
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Others">Others</option>
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label>Country:</label>
+                            <select
+                                className="form-control"
+                                value={country || ''}
+                                onChange={(e) => setCountry(e.target.value)}
+                                
+                            >
+                                <option value="">Select Country</option>
+                                <option value="99">India</option>
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label>State:</label>
+                            <select
+                                className="form-control"
+                                value={state || ''}
+                                onChange={(e) => setState(e.target.value)}
+                                
+                            >
+                                <option value="">Select State</option>
+                                {states.map((state) => (
+                                    <option key={state.id} value={state.id}>
+                                        {state.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label>District:</label>
+                            <select
+                                className="form-control"
+                                value={district || ''}
+                                onChange={(e) => setDistrict(e.target.value)}
+                                
+                            >
+                                <option value="">Select District</option>
+                                {districts.map((district) => (
+                                    <option key={district.id} value={district.id}>
+                                        {district.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label>ZIP Code:</label>
+                            <input
+                                type="text"
+                                value={zip || ''}
+                                onChange={(e) => setZip(e.target.value)}
+                                
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Address:</label>
+                            <textarea
+                                value={address || ''}
+                                onChange={(e) => setAddress(e.target.value)}
+                                rows="4"
+                                className="textarea"
+                               
+                            />
+                        </div>
+                    </div>
+                    <button type="submit" className="submit-button">Update Profile</button>
+                </form>
+            </div>
         </DashboardLayout>
     );
 };
