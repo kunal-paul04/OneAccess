@@ -112,6 +112,8 @@ small {
     font-family: 'Courier New', Courier, monospace;
     font-size: 14px;
     margin-bottom: 5px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .secret-container {
