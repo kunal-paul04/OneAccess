@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import DashboardLayout from './DashboardLayout';
 import { getUserSession } from './utils/authUtils';
 import './AddService.css';
@@ -8,6 +8,7 @@ const ViewService = () => {
     const [userName, setUserName] = useState('');
     const fetchTriggeredRef = useRef(false);  
     const location = useLocation(); 
+    const navigate = useNavigate(); 
     const [loading, setLoading] = useState(true); // Loading state
     const [service_name, setServiceName] = useState([]);
     const [service_domain, setServiceDomain] = useState([]);
@@ -75,6 +76,36 @@ const ViewService = () => {
         }
     }, [location.search]);
 
+    const approveService = async () => {
+        const userSession = getUserSession();
+        if (!userSession || !app_key) {
+            alert(`Missing required information.\nUser Email: ${userSession?.email || "N/A"}\nApp Key: ${app_key || "N/A"}`);
+        return;
+        }
+
+        try {
+            const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/approve_service`, {
+                method: 'POST',
+                headers: {
+                    'accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ client_email: userSession.email, client_id: app_key })
+            });
+
+            const data = await response.json();
+
+            if (data.status_code === 200) {
+                console.log('Service approved successfully');
+                navigate("/Services");
+            } else {
+                console.error('Failed to approve service:', data);
+            }
+        } catch (error) {
+            console.error('Failed to approve service:', error);
+        }
+    };
+
     // Render loading state until profile data is fetched
     if (loading) {
         return <div>Loading...</div>;
@@ -102,6 +133,9 @@ const ViewService = () => {
                                 <input type="url" name="service_uri" placeholder="https://your-redirect-url.com" value={service_uri || ''} readOnly={isServiceUriReadOnly} />
                                 <small>For use with requests from a web server</small>
                             </div>
+                            <div className="form-buttons">
+                            <button onClick={approveService} className="approve-button">Approve</button>
+                        </div>
                 </form>
 
                     <div className="additional-info">
@@ -120,6 +154,7 @@ const ViewService = () => {
                             <p>{created_at}</p>
                         </div>
                     </div>
+                    
             </div>
         </DashboardLayout>
     );
