@@ -7,30 +7,21 @@ import './AddService.css';
 const ViewService = () => {
     const [serviceData, setServiceData] = useState(null);
     const [userName, setUserName] = useState('');
-    const fetchTriggeredRef = useRef(false);  // Use ref to track if the fetch has been triggered
-    const location = useLocation(); // Use location hook to get query params
-
-    // const [service_name, setService_name] = useState('');
-    // const [phone, setPhone] = useState('');
-    // const [phone, setPhone] = useState('');
-    // const [phone, setPhone] = useState('');
-    // const [phone, setPhone] = useState('');
-    // const [phone, setPhone] = useState('');
+    const fetchTriggeredRef = useRef(false);  
+    const location = useLocation(); 
 
     useEffect(() => {
-        const userSession = getUserSession(); // Get user session
+        const userSession = getUserSession();
 
         if (userSession && userSession.name) {
             setUserName(userSession.name);
         }
-        console.log('Location search:', location.search);
 
         const params = new URLSearchParams(location.search);
-        const clientId = params.get('client_id');
-        console.log(clientId);
-        console.log(params);
+        const encodedClientId = params.get('client_id');
+        const clientId = decodeURIComponent(encodedClientId);
+        alert(`Decoded Client ID: ${clientId}`);
 
-        // Only trigger the fetch if it hasn't been triggered yet
         if (!fetchTriggeredRef.current && userSession) {
             fetchTriggeredRef.current = true;
 
@@ -40,7 +31,7 @@ const ViewService = () => {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    client_id: clientId // Send the encoded client_id in the request body
+                    client_id: clientId 
                 }),
             })
             .then(response => response.json())
@@ -62,53 +53,59 @@ const ViewService = () => {
                 console.error('Error fetching service data:', error);
             });
         }
-    }, [location.search]);  // Empty dependency array to run only once
+    }, [location.search]);
 
     return (
         <DashboardLayout userName={userName}>
             <h5>Home &gt; Add New Service</h5>
             <div className="container">
                 <form className="service-form">
-                    <div className="form-section">
-                        <label>Service Name *</label>
-                        <input 
-                            type="text" 
-                            placeholder="Service Name" 
-                            name="service_name" 
-                            id="service_name" 
-                            value={serviceData.service_name} 
-                            readOnly 
-                        />
-                        <input type="hidden" name="app_key" value={serviceData?.app_key || ''} readOnly />
-                        <small>The name of your OAuth 2.0 client. This name is only used to identify the client in the console and will not be shown to end users.</small>
-                    </div>
+                    {serviceData ? (
+                        <>
+                            <div className="form-section">
+                                <label>Service Name *</label>
+                                <input 
+                                    type="text" 
+                                    placeholder="Service Name" 
+                                    name="service_name" 
+                                    id="service_name" 
+                                    value={serviceData.service_name} 
+                                    readOnly 
+                                />
+                                <input type="hidden" name="app_key" value={serviceData?.app_key || ''} readOnly />
+                                <small>The name of your OAuth 2.0 client. This name is only used to identify the client in the console and will not be shown to end users.</small>
+                            </div>
 
-                    <div className="form-section">
-                        <label>Service Domain *</label>
-                        <input 
-                            type="url" 
-                            name="service_domain" 
-                            placeholder="https://your-app-url.com" 
-                            value={serviceData.service_domain} 
-                            readOnly 
-                        />
-                        <small>For use with requests from a browser</small>
-                    </div>
+                            <div className="form-section">
+                                <label>Service Domain *</label>
+                                <input 
+                                    type="url" 
+                                    name="service_domain" 
+                                    placeholder="https://your-app-url.com" 
+                                    value={serviceData.service_domain} 
+                                    readOnly 
+                                />
+                                <small>For use with requests from a browser</small>
+                            </div>
 
-                    <div className="form-section">
-                        <label>Authorized redirect URIs</label>
-                        <div className="form-subsection">
-                            <label>URIs *</label>
-                            <input 
-                                type="url" 
-                                name="service_uri" 
-                                placeholder="https://your-redirect-url.com" 
-                                value={serviceData.service_uri} 
-                                readOnly 
-                            />
-                        </div>
-                        <small>For use with requests from a web server</small>
-                    </div>
+                            <div className="form-section">
+                                <label>Authorized redirect URIs</label>
+                                <div className="form-subsection">
+                                    <label>URIs *</label>
+                                    <input 
+                                        type="url" 
+                                        name="service_uri" 
+                                        placeholder="https://your-redirect-url.com" 
+                                        value={serviceData.service_uri} 
+                                        readOnly 
+                                    />
+                                </div>
+                                <small>For use with requests from a web server</small>
+                            </div>
+                        </>
+                    ) : (
+                        <p>Loading service data...</p>
+                    )}
                 </form>
 
                 {serviceData && (
