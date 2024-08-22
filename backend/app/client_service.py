@@ -17,12 +17,14 @@ cipher_suite = Fernet(ENCRYPTION_KEY)
 
 
 # Function to encrypt a given app_key
+@router.post("/encrypt_clientid", tags=["Service Management"])
 def encrypt_app_key(app_key: str) -> str:
     encrypted_key = cipher_suite.encrypt(app_key.encode("utf-8"))
     return encrypted_key.decode("utf-8")
 
 
 # Function to decrypt a given encrypted app_key
+@router.post("/decrypt_clientid", tags=["Service Management"])
 def decrypt_app_key(encrypted_key: str) -> str:
     decrypted_key = cipher_suite.decrypt(encrypted_key.encode("utf-8"))
     return decrypted_key.decode("utf-8")
@@ -169,7 +171,7 @@ async def fetch_client_detail(request: ClientServiceAppRequest, mongo_client=Dep
     service_collection = db[MONGO_SERVICE_COLLECTION]
 
     if not request.client_id:
-        raise HTTPException(status_code=400, detail="APP Key is required")
+        raise HTTPException(status_code=400, detail="Client ID is required")
 
     # Decrypt the client_id
     decrypted_client_id = decrypt_app_key(request.client_id)
