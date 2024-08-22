@@ -7,6 +7,8 @@ import Profile from './Profile';
 import Services from './Services';
 import AddService from './AddService';
 import ViewService from './ViewService';
+import ClientRegister from './ClientRegister';
+import ClientLogin from './ClientLogin';
 
 function App() {
   return (
@@ -20,7 +22,8 @@ function App() {
           <Route path="/services" element={<Services />} />
           <Route path="/addservice" element={<AddService />} />
           <Route path="/viewservice" element={<ViewService />} />
-          
+          <Route path="/client_register" element={<ClientRegister />} />
+          <Route path="/client_login" element={<ClientLogin />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
