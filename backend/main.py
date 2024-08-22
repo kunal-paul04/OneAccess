@@ -37,10 +37,8 @@ app.include_router(register_router)
 # Include the login router
 app.include_router(login_router)
 
-
 # Include the router from user_info.py
 app.include_router(user_router)
-
 
 # Include the router from client_service.py
 app.include_router(client_router)

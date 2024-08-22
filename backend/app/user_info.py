@@ -31,7 +31,8 @@ async def get_info(request: ProfileRequest, mongo_client=Depends(get_mongo_clien
             "gender": 1,
             "state_id": 1,
             "user_phone": 1,
-            "zip": 1
+            "zip": 1,
+            "user_role": 1
         }
     )
 

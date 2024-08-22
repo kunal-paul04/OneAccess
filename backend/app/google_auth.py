@@ -77,7 +77,8 @@ async def google_login(request: GoogleLoginRequest, mongo_client=Depends(get_mon
                 "family_name": family_name,
                 "passkey": hashed_password,
                 "profile_pic": profile_pic,
-                "googleLogin": 1
+                "googleLogin": 1,
+                "user_role": "CL-USER"
             }
             result = users_collection.insert_one(user_data)
             if result.inserted_id is None:
