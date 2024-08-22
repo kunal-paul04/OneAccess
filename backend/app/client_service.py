@@ -1,14 +1,20 @@
 import time
 import secrets
-import hashlib
+import hashlib, os
 from uuid import uuid4
 from datetime import datetime
 from pydantic import BaseModel, EmailStr
 from fastapi import APIRouter, HTTPException, Depends, status
 from app.database import get_mongo_client, MONGO_DB, MONGO_SERVICE_COLLECTION
+from cryptography.fernet import Fernet
 import base64
 
 router = APIRouter()
+
+
+# Load a key for encryption/decryption
+ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY")
+cipher_suite = Fernet(ENCRYPTION_KEY)
 
 
 class ClientServiceListRequest(BaseModel):
@@ -31,7 +37,18 @@ class ClientServiceAppRequest(BaseModel):
     client_id: str
 
 
-@router.post("/get_services", tags=["Service Management"])
+# Function to encrypt a given app_key
+def encrypt_app_key(app_key: str) -> str:
+    encrypted_key = cipher_suite.encrypt(app_key.encode("utf-8"))
+    return encrypted_key.decode("utf-8")
+
+# Function to decrypt a given encrypted app_key
+def decrypt_app_key(encrypted_key: str) -> str:
+    decrypted_key = cipher_suite.decrypt(encrypted_key.encode("utf-8"))
+    return decrypted_key.decode("utf-8")
+
+
+@router.post("/get_service_list", tags=["Service Management"])
 async def get_service_list(request: ClientServiceListRequest, mongo_client=Depends(get_mongo_client)):
     db = mongo_client[MONGO_DB]  # Get the database
     service_collection = db[MONGO_SERVICE_COLLECTION]
@@ -51,6 +68,10 @@ async def get_service_list(request: ClientServiceListRequest, mongo_client=Depen
 
     if not services:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Service not found!")
+
+    # Encrypt the app_key for each service
+    for service in services:
+        service["enc_app_key"] = encrypt_app_key(service["app_key"])
 
     return {"success": True, "message": "Service found", "service_details": services}
 
@@ -134,23 +155,21 @@ async def fetch_client_detail(request: ClientServiceAppRequest, mongo_client=Dep
     if not request.client_id:
         raise HTTPException(status_code=400, detail="APP Key is required")
 
-    try:
-        # Decode the client_id
-        decoded_client_id = base64.urlsafe_b64decode(request.client_id + '==').decode('utf-8')
-    except Exception as e:
-        raise HTTPException(status_code=400, detail="Invalid client_id format")
+    # Decrypt the client_id
+    decrypted_client_id = decrypt_app_key(request.client_id)
 
     # Check and fetch a list of services
-    services = list(service_collection.find({"app_key": decoded_client_id}, {
+    services = service_collection.find_one({"app_key": decrypted_client_id}, {
         "_id": 0,  # Exclude the MongoDB ObjectID from the results
         "service_domain": 1,
         "service_name": 1,
         "app_key": 1,
+        "app_secret": 1,
         "service_uri": 1,
         "created_at": 1,
-    }))
+    })
 
     if not services:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Service not found!")
 
-    return {"success": True, "status_code": 200, "message": "Service found", "service_details": services}
+    return {"success": True, "status_code": 200, "message": "Service found", "data": services}

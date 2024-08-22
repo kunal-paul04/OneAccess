@@ -20,7 +20,7 @@ const Services = () => {
         if (!fetchTriggeredRef.current && userSession && userSession.email) {
             fetchTriggeredRef.current = true;  // Set ref to true to prevent future triggers
 
-            fetch(`${process.env.REACT_APP_BACKEND_URL}/get_services`, {
+            fetch(`${process.env.REACT_APP_BACKEND_URL}/get_service_list`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -98,8 +98,8 @@ const Services = () => {
                             <td>{service.service_uri}</td>
                             <td>{service.created_at}</td>
                             <td>
-                                <button>Edit</button>
-                                <button onClick={() => window.location.href = `/ViewService?client_id=${encodeURIComponent(service.app_key)}`}>View</button>
+                                {/* <button>Edit</button> */}
+                                <button onClick={() => window.location.href = `/ViewService?client_id=${encodeURIComponent(service.enc_app_key)}`}>View</button>
                             </td>
                         </tr>
                     ))}
