@@ -61,6 +61,7 @@ async def get_service_list(request: ClientServiceListRequest, mongo_client=Depen
             "service_name": 1,
             "app_key": 1,
             "service_uri": 1,
+            "is_approved": 1,
             "created_at": 1,
         }))
     elif user_role == "ADMIN-USER":
@@ -70,6 +71,7 @@ async def get_service_list(request: ClientServiceListRequest, mongo_client=Depen
             "service_name": 1,
             "app_key": 1,
             "service_uri": 1,
+            "is_approved": 1,
             "created_at": 1,
         }))
     else:
@@ -180,6 +182,7 @@ async def fetch_client_detail(request: ClientServiceAppRequest, mongo_client=Dep
     # Check and fetch a list of services
     services = service_collection.find_one({"app_key": decrypted_client_id}, {
         "_id": 0,  # Exclude the MongoDB ObjectID from the results
+        "client_email": 1,
         "service_domain": 1,
         "service_name": 1,
         "app_key": 1,
@@ -192,7 +195,12 @@ async def fetch_client_detail(request: ClientServiceAppRequest, mongo_client=Dep
     if not services:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Service not found!")
 
-    return {"success": True, "status_code": 200, "message": "Service found", "data": services}
+    return {
+        "success": True,
+        "status_code": 200,
+        "message": "Service found",
+        "data": services
+    }
 
 
 class ClientServiceApproveRequest(BaseModel):
@@ -224,4 +232,8 @@ async def approve_service_key(request: ClientServiceApproveRequest, mongo_client
     if result.modified_count == 0:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No changes were made")
     else:
-        return {"success": True, "status_code": 200, "message": "Service Approved successfully"}
+        return {
+            "success": True,
+            "status_code": 200,
+            "message": "Service Approved successfully"
+        }
