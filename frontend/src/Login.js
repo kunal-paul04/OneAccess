@@ -26,10 +26,13 @@ const Login = () => {
             });
 
             const data = await response.json();
+            //console.log("API Response:", data);
+            
             if (response.ok && data.success) {
                 localStorage.setItem('userSession', JSON.stringify({
                     txn: data.txn,
                     email: data.email,
+                    user_role: data.user_role,
                     googleLogin: 0 // Flag indicating not login via Google account
                 }));
                 // After successful login or Google sign-in
@@ -37,10 +40,12 @@ const Login = () => {
                     txn: data.txn,
                     email: data.email,
                     name: data.name,
+                    user_role: data.user_role,
                     googleLogin: 0
                 });
 
                 window.location.href = "/dashboard";
+                //console.log('User Session:', saveUserSession); 
             } else {
                 setError("Login failed. Please check your credentials.");
             }
@@ -69,6 +74,7 @@ const Login = () => {
                 saveUserSession({
                     txn: data.txn,
                     email: data.email,
+                    user_role: data.user_role,
                     name: data.name,
                     googleLogin: 1
                 });
