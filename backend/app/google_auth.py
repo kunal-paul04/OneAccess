@@ -1,6 +1,6 @@
 import os
 import time
-import uuid
+from app.utils import generate_txn_number
 from dotenv import load_dotenv
 from google.oauth2 import id_token
 from pydantic import BaseModel, EmailStr
@@ -27,12 +27,6 @@ class LogoutRequest(BaseModel):
     txn: str
     email: EmailStr
     isGoogleLogin: int
-
-
-def generate_txn_number():
-    # Option 1: Generate a UUID-based transaction number
-    txn_number = str(uuid.uuid4())
-    return txn_number
 
 
 @router.post("/google-login", tags=["Login & Registration"])
@@ -86,11 +80,13 @@ async def google_login(request: GoogleLoginRequest, mongo_client=Depends(get_mon
 
         # Handle user creation or authentication logic here
         return {
+            "status_code": 200,
             "success": True,
             "message": "Login successful",
             "txn": txn,
             "email": email,
             "name": name,
+            "user_role": "CL-USER",
             "profile_pic": profile_pic
         }
 
