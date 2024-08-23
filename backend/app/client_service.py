@@ -185,6 +185,7 @@ async def fetch_client_detail(request: ClientServiceAppRequest, mongo_client=Dep
         "app_secret": 1,
         "service_uri": 1,
         "created_at": 1,
+        "is_approved": 1
     })
 
     if not services:
