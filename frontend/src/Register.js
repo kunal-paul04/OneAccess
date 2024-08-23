@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Register.css';
+import { saveUserSession } from './utils/authUtils';
 
 const Register = () => {
     const [email, setEmail] = useState('');
@@ -31,12 +32,25 @@ const Register = () => {
             });
 
             const data = await response.json();
-            if (response.ok) {
+            console.log("API Response:", data)
+            if (response.ok && data.success) {
                 setSuccessMessage('Registration successful! Please check your email to verify your account.');
                 setError('');
-                setTimeout(() => {
-                    navigate('/dashboard');
-                }, 2000);
+                localStorage.setItem('userSession', JSON.stringify({
+                    txn: data.txn,
+                    email: data.email,
+                    user_role: data.user_role,
+                    googleLogin: 0 // Flag indicating not login via Google account
+                }));
+                // Save session data
+                saveUserSession({
+                    txn: data.txn,
+                    email: data.email,
+                    name: data.name, // Assuming the response contains the user's name
+                    user_role: data.user_role, // Assuming the response contains the user's role
+                    googleLogin: data.googleLogin || 0 // If applicable
+                });
+                window.location.href = "/dashboard";
             } else {
                 setError(data.detail || 'Registration failed');
                 setSuccessMessage('');

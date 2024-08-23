@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy.orm import Session
 from pymongo import MongoClient
 from app.login import router as login_router
+from app.utils import router as generate_txn_number
 from starlette.middleware.cors import CORSMiddleware
 from app.google_auth import router as google_auth_router
 from app.database import get_db, get_mongo_client
@@ -45,6 +46,8 @@ app.include_router(client_router)
 
 # Include the router from update_profile.py
 app.include_router(update_profile_router)
+
+app.include_router(generate_txn_number)
 
 
 @app.post("/states", tags=["ELK"])

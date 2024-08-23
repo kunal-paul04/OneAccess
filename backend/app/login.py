@@ -1,7 +1,7 @@
 import hashlib
 from pydantic import BaseModel
 from pymongo import MongoClient
-from app.google_auth import generate_txn_number
+from app.utils import generate_txn_number
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.database import get_mongo_client, MONGO_DB, MONGO_COLLECTION
 
@@ -30,6 +30,14 @@ async def login(login_request: LoginRequest, mongo_client: MongoClient = Depends
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
     txn = generate_txn_number()
-
+    user_role = user.get("user_role")
+    googleLogin = user.get("googleLogin")
     # Optionally, create a session or JWT token here
-    return {"success": True, "message": "Login successful", "email": login_request.email, "txn": txn}
+    return {
+        "success": True,
+        "message": "Login successful",
+        "email": login_request.email,
+        "googleLogin": googleLogin,
+        "txn": txn,
+        "user_role": user_role  # Include user_role in the response
+    }

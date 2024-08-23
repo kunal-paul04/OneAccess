@@ -56,6 +56,7 @@ const Profile = () => {
 
     useEffect(() => {
         const userSession = getUserSession();
+        //console.log("user session:", userSession)
 
         if (userSession) {
             setUserName(userSession.name || '');

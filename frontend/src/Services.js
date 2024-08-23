@@ -6,14 +6,21 @@ import './Services.css';
 const Services = () => {
     const [userName, setUserName] = useState('');
     const [services, setServices] = useState([]);
+    const [userRole, setUserRole] = useState('');
     const [error, setError] = useState(null);
     const fetchTriggeredRef = useRef(false);  // Use ref to track if the fetch has been triggered
 
     useEffect(() => {
         const userSession = getUserSession(); // Get user session
+       
+        console.log("user session:", userSession)
 
-        if (userSession && userSession.name) {
+        if (userSession && userSession.user_role) {
             setUserName(userSession.name);
+            setUserRole(userSession.user_role);
+            
+        }else {
+            console.log('User session is not valid or does not have a name.');
         }
 
         // Fetch services data from FastAPI backend
@@ -76,7 +83,9 @@ const Services = () => {
         <DashboardLayout userName={userName}>
             <div className="page-header">
                 <h5 className="page-tag">Home &gt; Services</h5>
+                {userRole !== "ADMIN-USER" && (
                 <a href="/AddService"><button className="add-service-btn">+ Add New Service</button></a>
+            )}
             </div>
             <table className="services-table">
                 <thead>

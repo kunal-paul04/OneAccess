@@ -28,7 +28,7 @@ export const handleLogout = () => {
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({ isGoogleLogin, txn, email })
+        body: JSON.stringify({ isGoogleLogin, txn, email})
     })
     .then((res) => res.json())
     .then((data) => {
