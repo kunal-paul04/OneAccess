@@ -18,6 +18,7 @@ const Profile = () => {
     const [districts, setDistricts] = useState([]);
     const [loading, setLoading] = useState(true); // Loading state
 
+    const [isuserNameReadOnly, setIsuserNameReadOnly] = useState(false);
     const [isPhoneReadOnly, setIsPhoneReadOnly] = useState(false);
     const [isDobReadOnly, setIsDobReadOnly] = useState(false);
     const [isGenderReadOnly, setIsGenderReadOnly] = useState(false);
@@ -56,7 +57,7 @@ const Profile = () => {
 
                     if (data.status_code === 200) {
                         const userData = data.data;
-
+                        setUserName(userData.name || '');
                         setPhone(userData.user_phone || '');
                         setDob(userData.dob || '');
                         setGender(userData.gender || '');
@@ -67,6 +68,7 @@ const Profile = () => {
                         setAddress(userData.address || '');
 
                         // Disable fields if they have data
+                        if (userData.name) setIsuserNameReadOnly(true);
                         if (userData.user_phone) setIsPhoneReadOnly(true);
                         if (userData.dob) setIsDobReadOnly(true);
                         if (userData.gender) setIsGenderReadOnly(true);
@@ -153,6 +155,7 @@ const Profile = () => {
         e.preventDefault();
 
         const profileData = {
+            name: userName,
             dob,
             gender,
             country_id: country,
@@ -202,7 +205,8 @@ const Profile = () => {
                             <input
                                 type="text"
                                 value={userName || ''}
-                                readOnly
+                                onChange={(e) => setUserName(e.target.value)}
+                                readOnly={isuserNameReadOnly}
                             />
                         </div>
                         <div className="form-group">
