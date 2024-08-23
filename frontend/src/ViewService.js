@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import DashboardLayout from './DashboardLayout';
 import { getUserSession } from './utils/authUtils';
 import './AddService.css';
@@ -8,14 +8,15 @@ const ViewService = () => {
     const [userName, setUserName] = useState('');
     const fetchTriggeredRef = useRef(false);  
     const location = useLocation(); 
-    const navigate = useNavigate(); 
     const [loading, setLoading] = useState(true); // Loading state
     const [service_name, setServiceName] = useState([]);
     const [service_domain, setServiceDomain] = useState([]);
     const [service_uri, setServiceUri] = useState([]);
     const [app_key, setAppKey] = useState([]);
+    const [isApproved, setIsApproved] = useState([]);
     const [app_secret, setAppSecret] = useState([]);
     const [created_at, setCreated] = useState([]);
+    const [clientEmail, setClientEmail] = useState('');
 
     const [isServiceNameReadOnly, setIsServiceNameReadOnly] = useState(false);
     const [isServiceDomainReadOnly, setIsServiceDomainReadOnly] = useState(false);
@@ -50,14 +51,15 @@ const ViewService = () => {
 
                     if (data.status_code === 200) {
                         const serviceData = data.data;
-
                         setServiceName(serviceData.service_name || '');
                         setServiceDomain(serviceData.service_domain || '');
                         setServiceUri(serviceData.service_uri || '');
+                        setIsApproved(serviceData.is_approved || '');
                         setAppKey(serviceData.app_key || '');
                         setAppSecret(serviceData.app_secret || '');
                         setCreated(serviceData.created_at || '');
-
+                        setClientEmail(serviceData.client_email || '');
+                        
                         // Disable fields if they have data
                         if (serviceData.service_name) setIsServiceNameReadOnly(true);
                         if (serviceData.service_domain) setIsServiceDomainReadOnly(true);
@@ -76,12 +78,9 @@ const ViewService = () => {
         }
     }, [location.search]);
 
-    const approveService = async () => {
-        const userSession = getUserSession();
-        if (!userSession || !app_key) {
-            alert(`Missing required information.\nUser Email: ${userSession?.email || "N/A"}\nApp Key: ${app_key || "N/A"}`);
-        return;
-        }
+    // Function to handle service approval
+    const handleApproveService = async (e) => {
+        e.preventDefault();
 
         try {
             const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/approve_service`, {
@@ -90,23 +89,26 @@ const ViewService = () => {
                     'accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ client_email: userSession.email, client_id: app_key })
+                body: JSON.stringify({
+                    client_email: clientEmail,  // Pass the client email
+                    client_id: app_key         // Pass the app key
+                })
             });
 
             const data = await response.json();
-
-            if (data.status_code === 200) {
-                console.log('Service approved successfully');
-                navigate("/Services");
+            
+            if (data.success) {
+                alert('Service approved successfully!');
+                window.location.href = "/services";
             } else {
-                console.error('Failed to approve service:', data);
+                alert(`Error: ${data.detail}`);
             }
         } catch (error) {
             console.error('Failed to approve service:', error);
+            alert('Failed to approve service. Please try again.');
         }
     };
 
-    // Render loading state until profile data is fetched
     if (loading) {
         return <div>Loading...</div>;
     }
@@ -133,9 +135,16 @@ const ViewService = () => {
                                 <input type="url" name="service_uri" placeholder="https://your-redirect-url.com" value={service_uri || ''} readOnly={isServiceUriReadOnly} />
                                 <small>For use with requests from a web server</small>
                             </div>
+                            
                             <div className="form-buttons">
-                            <button onClick={approveService} className="approve-button">Approve</button>
-                        </div>
+                        {Number(isApproved) === 0 && (
+                            <button onClick={handleApproveService} className="approve-button">Approve Service</button>
+                        )}
+                        {Number(isApproved) === 1 && (
+                            <button className="add-service-btn" disabled>Service is Approved</button>
+                        )}
+                    </div>
+                       
                 </form>
 
                     <div className="additional-info">

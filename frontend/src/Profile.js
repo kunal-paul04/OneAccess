@@ -27,7 +27,7 @@ const Profile = () => {
     const [isDistrictReadOnly, setIsDistrictReadOnly] = useState(false);
     const [isZipReadOnly, setIsZipReadOnly] = useState(false);
     const [isAddressReadOnly, setIsAddressReadOnly] = useState(false);
-
+    const [errors, setErrors] = useState({});
 
     const hasFetchedProfile = useRef(false);
 
@@ -152,8 +152,52 @@ const Profile = () => {
         }
     }, [state]);
 
+    const validateForm = () => {
+        const errors = {};
+
+        // Name validation: only letters and spaces, max 100 characters
+        if (!/^[a-zA-Z\s]{1,100}$/.test(userName)) {
+            errors.userName = 'Name should only contain letters and spaces, up to 100 characters.';
+        }
+
+        // Mobile number validation: starts with 6-9, exactly 10 digits
+        if (!/^[6-9]\d{9}$/.test(phone)) {
+            errors.phone = 'Mobile number should start with 6-9 and contain exactly 10 digits.';
+        }
+
+        // ZIP code validation: exactly 6 digits
+        if (!/^\d{6}$/.test(zip)) {
+            errors.zip = 'ZIP code should contain exactly 6 digits.';
+        }
+
+        // Address validation: max 250 characters
+        if (address.length > 250) {
+            errors.address = 'Address should not exceed 250 characters.';
+        }
+
+        // Date of Birth validation: between 01-01-1990 and 01-01-2015
+        const dobDate = new Date(dob);
+        const minDate = new Date('1990-01-01');
+        const maxDate = new Date('2015-01-01');
+         
+        if (dob && (dobDate < minDate || dobDate > maxDate)) {
+            errors.dob = 'Date of Birth must be between 01-01-1990 and 01-01-2015.';
+        }
+
+        console.log("Validation Errors:", errors); // Debugging: log errors to console
+
+        setErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
+
+
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!validateForm()) {
+            return; // Stop submission if validation fails
+        }
 
         const profileData = {
             name: userName,
@@ -209,6 +253,7 @@ const Profile = () => {
                                 onChange={(e) => setUserName(e.target.value)}
                                 readOnly={isuserNameReadOnly}
                             />
+                             {errors.userName && <div className="error">{errors.userName}</div>}
                         </div>
                         <div className="form-group">
                             <label>Email:</label>
@@ -226,6 +271,7 @@ const Profile = () => {
                                 onChange={(e) => setPhone(e.target.value)}
                                 readOnly={isPhoneReadOnly}
                             />
+                             {errors.phone && <div className="error">{errors.phone}</div>}
                         </div>
                         <div className="form-group">
                             <label>Date of Birth:</label>
@@ -235,6 +281,7 @@ const Profile = () => {
                                 onChange={(e) => setDob(e.target.value)}
                                 readOnly={isDobReadOnly}
                             />
+                            {errors.dob && <div className="error">{errors.dob}</div>}
                         </div>
                         <div className="form-group">
                             <label>Gender:</label>
@@ -302,6 +349,7 @@ const Profile = () => {
                                 onChange={(e) => setZip(e.target.value)}
                                 readOnly={isZipReadOnly}
                             />
+                             {errors.zip && <div className="error">{errors.zip}</div>}
                         </div>
                         <div className="form-group">
                             <label>Address:</label>
@@ -312,6 +360,7 @@ const Profile = () => {
                                 className="textarea"
                                 readOnly={isAddressReadOnly}
                             />
+                             {errors.address && <div className="error">{errors.address}</div>}
                         </div>
                     </div>
                     <button type="submit" className="submit-button">Update Profile</button>

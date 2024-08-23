@@ -13,8 +13,6 @@ const Services = () => {
     useEffect(() => {
         const userSession = getUserSession(); // Get user session
        
-        console.log("user session:", userSession)
-
         if (userSession && userSession.user_role) {
             setUserName(userSession.name);
             setUserRole(userSession.user_role);
@@ -107,8 +105,14 @@ const Services = () => {
                             <td>{service.service_uri}</td>
                             <td>{service.created_at}</td>
                             <td>
-                                {/* <button>Edit</button> */}
-                                <button onClick={() => window.location.href = `/ViewService?client_id=${encodeURIComponent(service.enc_app_key)}`}>View</button>
+                            <div className="form-buttons">
+                            {Number(service.is_approved) === 0 && (
+                           <button className="services-table button" onClick={() => window.location.href = `/ViewService?client_id=${encodeURIComponent(service.enc_app_key)}`}>View</button>
+                            )}
+                            {Number(service.is_approved) === 1 && (
+                                <button className="add-service-btn" disabled>Approved</button>
+                            )}
+                            </div> 
                             </td>
                         </tr>
                     ))}
