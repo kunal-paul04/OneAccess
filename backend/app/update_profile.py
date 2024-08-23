@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException, Depends, status
+from typing import Optional
 from pydantic import BaseModel
 from pymongo import MongoClient
+from fastapi import APIRouter, HTTPException, Depends, status
 from app.database import get_mongo_client, MONGO_DB, MONGO_COLLECTION
 
 router = APIRouter()
@@ -8,6 +9,7 @@ router = APIRouter()
 
 # Pydantic model for request body validation
 class UpdateProfileRequest(BaseModel):
+    name: Optional[str]
     dob: str
     gender: str
     country_id: int
