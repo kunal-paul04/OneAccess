@@ -1,6 +1,7 @@
 import time
 import secrets
-import hashlib, os
+import hashlib
+import os
 from uuid import uuid4
 from datetime import datetime
 from pydantic import BaseModel, EmailStr
@@ -224,5 +225,3 @@ async def approve_service_key(request: ClientServiceApproveRequest, mongo_client
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No changes were made")
     else:
         return {"success": True, "status_code": 200, "message": "Service Approved successfully"}
-
-
