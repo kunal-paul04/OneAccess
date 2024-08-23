@@ -15,7 +15,7 @@ const AddService = () => {
 
     const validate = () => {
         const errors = {};
-        const urlRegex = /^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/; // Accept only valid URL
+        const urlRegex = /^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/i; // Accept only valid URL
 
         if (!urlRegex.test(serviceDomain)) {
             errors.serviceDomain = "Enter valid url!";

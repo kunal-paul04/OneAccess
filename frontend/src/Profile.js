@@ -37,21 +37,48 @@ const Profile = () => {
         const phoneRegex = /^[1-9]\d{9}$/; // Mobile No. should be 10 digits and not start with 0
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Standard email format
         const zipRegex = /^[1-9]\d{6}$/; // Zipcode should be 6 digits and not start with 0
-
-        if (!phoneRegex.test(phone)) {
+    
+        if (!phoneRegex.test(phone.trim())) {
             errors.phone = "Mobile No. must be 10 digits and not start with 0";
         }
-
-        if (!emailRegex.test(email)) {
+    
+        if (!emailRegex.test(email.trim())) {
             errors.email = "Invalid email format";
         }
-
-        if (!zipRegex.test(zip)) {
+    
+        if (!zipRegex.test(zip.trim())) {
             errors.zip = "Invalid zipcode format";
         }
-
+    
         setErrors(errors);
         return Object.keys(errors).length === 0;
+    };
+
+    const handlePhoneChange = (e) => {
+        setPhone(e.target.value);
+        if (!/^[1-9]\d{9}$/.test(e.target.value.trim())) {
+            setErrors(prevErrors => ({ ...prevErrors, phone: "Mobile No. must be 10 digits and not start with 0" }));
+        } else {
+            setErrors(prevErrors => ({ ...prevErrors, phone: '' }));
+        }
+    };
+
+    // const handleEmailChange = (e) => {
+    //     setEmail(e.target.value);
+    //     if (!/^[1-9]\d{9}$/.test(e.target.value.trim())) {
+    //         setErrors(prevErrors => ({ ...prevErrors, email: "Invalid email format" }));
+    //     } else {
+    //         setErrors(prevErrors => ({ ...prevErrors, email: '' }));
+    //     }
+    // };
+
+    const handleZipChange = (e) => {
+        setZip(e.target.value);
+        if (!/^[1-9]\d{6}$/.test(e.target.value.trim())) {
+            setErrors(prevErrors => ({ ...prevErrors, zip: "Invalid zipcode format" }));
+        } else {
+            setErrors(prevErrors => ({ ...prevErrors, zip: '' }));
+        }
     };
 
     useEffect(() => {
@@ -248,10 +275,17 @@ const Profile = () => {
                         </div>
                         <div className="form-group">
                             <label>Mobile No.:</label>
-                            <input
+                            {/* <input
                                 type="text"
                                 value={phone || ''}
                                 onChange={(e) => setPhone(e.target.value)}
+                                readOnly={isPhoneReadOnly}
+                            />
+                            {errors.phone && <span className="error-text">{errors.phone}</span>} */}
+                            <input
+                                type="text"
+                                value={phone || ''}
+                                onChange={handlePhoneChange}
                                 readOnly={isPhoneReadOnly}
                             />
                             {errors.phone && <span className="error-text">{errors.phone}</span>}
@@ -325,10 +359,16 @@ const Profile = () => {
                         </div>
                         <div className="form-group">
                             <label>ZIP Code:</label>
-                            <input
+                            {/* <input
                                 type="text"
                                 value={zip || ''}
                                 onChange={(e) => setZip(e.target.value)}
+                                readOnly={isZipReadOnly}
+                            /> */}
+                            <input
+                                type="text"
+                                value={zip || ''}
+                                onChange={handleZipChange}
                                 readOnly={isZipReadOnly}
                             />
                             {errors.zip && <span className="error-text">{errors.zip}</span>}
