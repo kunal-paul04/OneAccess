@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import {  } from 'react-router-dom'; // useNavigate
 import './Register.css';
 import { saveUserSession } from './utils/authUtils';
 
@@ -12,7 +12,7 @@ const Register = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    const navigate = useNavigate();
+    //const navigate = useNavigate();
 
     const handleRegister = async (e) => {
         e.preventDefault();
