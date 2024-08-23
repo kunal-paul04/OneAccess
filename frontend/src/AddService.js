@@ -11,6 +11,23 @@ const AddService = () => {
     const [serviceUri, setServiceUri] = useState('');
     const [clientEmail, setClientEmail] = useState('');
     const fetchTriggeredRef = useRef(false);  // Use ref to track if the fetch has been triggered
+    const [errors, setErrors] = useState({});
+
+    const validate = () => {
+        const errors = {};
+        const urlRegex = /^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/; // Accept only valid URL
+
+        if (!urlRegex.test(serviceDomain)) {
+            errors.serviceDomain = "Enter valid url!";
+        }
+
+        if (!urlRegex.test(serviceUri)) {
+            errors.serviceUri = "Enter valid url!";
+        }
+
+        setErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
 
     useEffect(() => {
         const userSession = getUserSession(); // Get user session
@@ -53,6 +70,10 @@ const AddService = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!validate()) {
+            return;
+        }
 
         const serviceDataToSend = {
             service_name: serviceName,
@@ -116,6 +137,7 @@ const AddService = () => {
                             onChange={(e) => setServiceDomain(e.target.value)} 
                             required 
                         />
+                        {errors.serviceDomain && <span className="error-text">{errors.serviceDomain}</span>}
                         <small>For use with requests from a browser</small>
                     </div>
 
@@ -132,6 +154,7 @@ const AddService = () => {
                                 required 
                             />
                         </div>
+                        {errors.serviceUri && <span className="error-text">{errors.serviceUri}</span>}
                         <small>For use with requests from a web server</small>
                     </div>
 

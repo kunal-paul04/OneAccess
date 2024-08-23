@@ -17,6 +17,7 @@ const Profile = () => {
     const [states, setStates] = useState([]);
     const [districts, setDistricts] = useState([]);
     const [loading, setLoading] = useState(true); // Loading state
+    const [errors, setErrors] = useState({});
 
     const [isuserNameReadOnly, setIsuserNameReadOnly] = useState(false);
     const [isPhoneReadOnly, setIsPhoneReadOnly] = useState(false);
@@ -30,6 +31,28 @@ const Profile = () => {
 
 
     const hasFetchedProfile = useRef(false);
+
+    const validate = () => {
+        const errors = {};
+        const phoneRegex = /^[1-9]\d{9}$/; // Mobile No. should be 10 digits and not start with 0
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Standard email format
+        const zipRegex = /^[1-9]\d{6}$/; // Zipcode should be 6 digits and not start with 0
+
+        if (!phoneRegex.test(phone)) {
+            errors.phone = "Mobile No. must be 10 digits and not start with 0";
+        }
+
+        if (!emailRegex.test(email)) {
+            errors.email = "Invalid email format";
+        }
+
+        if (!zipRegex.test(zip)) {
+            errors.zip = "Invalid zipcode format";
+        }
+
+        setErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
 
     useEffect(() => {
         const userSession = getUserSession();
@@ -154,6 +177,10 @@ const Profile = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        if (!validate()) {
+            return;
+        }
+
         const profileData = {
             name: userName,
             dob,
@@ -216,6 +243,7 @@ const Profile = () => {
                                 value={email || ''}
                                 readOnly
                             />
+                            {errors.email && <span className="error-text">{errors.email}</span>}
                         </div>
                         <div className="form-group">
                             <label>Mobile No.:</label>
@@ -225,6 +253,7 @@ const Profile = () => {
                                 onChange={(e) => setPhone(e.target.value)}
                                 readOnly={isPhoneReadOnly}
                             />
+                            {errors.phone && <span className="error-text">{errors.phone}</span>}
                         </div>
                         <div className="form-group">
                             <label>Date of Birth:</label>
@@ -301,6 +330,7 @@ const Profile = () => {
                                 onChange={(e) => setZip(e.target.value)}
                                 readOnly={isZipReadOnly}
                             />
+                            {errors.zip && <span className="error-text">{errors.zip}</span>}
                         </div>
                         <div className="form-group">
                             <label>Address:</label>
