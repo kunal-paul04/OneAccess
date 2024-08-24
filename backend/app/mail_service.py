@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, APIRouter
+from fastapi import HTTPException, APIRouter
 from pydantic import BaseModel
 from mailjet_rest import Client
 import os
@@ -49,7 +49,7 @@ async def send_email(email_request: EmailRequest):
                 "Subject": "Welcome to OneAccess",
                 "Variables": {
                     "to_name": email_request.to_name  # Ensure this matches the template variable
-             }
+                }
             }
         ]
     }
