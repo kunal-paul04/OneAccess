@@ -10,6 +10,8 @@ from app.migrate_users import migrate_users
 from app.register import router as register_router
 from app.user_info import router as user_router
 from app.client_service import router as client_router
+from app.mail_service import router as send_email
+from app.sms_service import router as sms_router
 from app.update_profile import router as update_profile_router
 from app.elk_data import get_states_list, CountryRequest, StateRequest, get_district_list
 
@@ -46,6 +48,10 @@ app.include_router(client_router)
 
 # Include the router from update_profile.py
 app.include_router(update_profile_router)
+
+app.include_router(send_email)
+
+app.include_router(sms_router)
 
 app.include_router(generate_txn_number)
 
