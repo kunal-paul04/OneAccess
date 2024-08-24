@@ -22,8 +22,8 @@ function App() {
           <Route path="/services" element={<Services />} />
           <Route path="/addservice" element={<AddService />} />
           <Route path="/viewservice" element={<ViewService />} />
-          <Route path="/client_register" element={<ClientRegister />} />
-          <Route path="/client_login" element={<ClientLogin />} />
+          <Route path="/cr_gsi" element={<ClientRegister />} />
+          <Route path="/cl_gsi" element={<ClientLogin />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>

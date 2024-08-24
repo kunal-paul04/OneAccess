@@ -9,7 +9,6 @@ const Dashboard = () => {
 
     useEffect(() => {
         const userSession = getUserSession(); // Get user session
-        //console.log("Retrieved User Session:", userSession);
 
         if (userSession && userSession.name) {
             setUserName(userSession.name);

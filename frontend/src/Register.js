@@ -32,7 +32,6 @@ const Register = () => {
             });
 
             const data = await response.json();
-            console.log("API Response:", data)
             if (response.ok && data.success) {
                 setSuccessMessage('Registration successful! Please check your email to verify your account.');
                 setError('');
@@ -50,7 +49,7 @@ const Register = () => {
                     user_role: data.user_role, // Assuming the response contains the user's role
                     googleLogin: data.googleLogin || 0 // If applicable
                 });
-                window.location.href = "/dashboard";
+                window.location.href = "/profile";
             } else {
                 setError(data.detail || 'Registration failed');
                 setSuccessMessage('');

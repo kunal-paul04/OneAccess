@@ -12,13 +12,13 @@ const Services = () => {
 
     useEffect(() => {
         const userSession = getUserSession(); // Get user session
-       
+
         if (userSession && userSession.user_role) {
             setUserName(userSession.name);
             setUserRole(userSession.user_role);
             
         }else {
-            console.log('User session is not valid or does not have a name.');
+            setError('User session is not valid or does not have a name.');
         }
 
         // Fetch services data from FastAPI backend
@@ -106,10 +106,10 @@ const Services = () => {
                             <td>{service.created_at}</td>
                             <td>
                             <div className="form-buttons">
-                            {Number(service.is_approved) === 0 && (
-                           <button className="services-table button" onClick={() => window.location.href = `/ViewService?client_id=${encodeURIComponent(service.enc_app_key)}`}>View</button>
+                            {userRole !== 'ADMIN-USER' && (
+                                <button className="services-table button" onClick={() => window.location.href = `/ViewService?client_id=${encodeURIComponent(service.enc_app_key)}`}>View</button>
                             )}
-                            {Number(service.is_approved) === 1 && (
+                            {Number(service.is_approved) === 1 && userRole === 'ADMIN-USER' && (
                                 <button className="add-service-btn" disabled>Approved</button>
                             )}
                             </div> 

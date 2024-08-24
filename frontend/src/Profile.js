@@ -33,7 +33,6 @@ const Profile = () => {
 
     useEffect(() => {
         const userSession = getUserSession();
-        //console.log("user session:", userSession)
 
         if (userSession) {
             setUserName(userSession.name || '');
@@ -183,8 +182,6 @@ const Profile = () => {
         if (dob && (dobDate < minDate || dobDate > maxDate)) {
             errors.dob = 'Date of Birth must be between 01-01-1990 and 01-01-2015.';
         }
-
-        console.log("Validation Errors:", errors); // Debugging: log errors to console
 
         setErrors(errors);
         return Object.keys(errors).length === 0;

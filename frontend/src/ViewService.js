@@ -6,6 +6,7 @@ import './AddService.css';
 
 const ViewService = () => {
     const [userName, setUserName] = useState('');
+    const [userRole, setUserRole] = useState('');
     const fetchTriggeredRef = useRef(false);  
     const location = useLocation(); 
     const [loading, setLoading] = useState(true); // Loading state
@@ -27,6 +28,7 @@ const ViewService = () => {
 
         if (userSession && userSession.name) {
             setUserName(userSession.name);
+            setUserRole(userSession.user_role);
         }
 
         const params = new URLSearchParams(location.search);
@@ -112,58 +114,67 @@ const ViewService = () => {
     if (loading) {
         return <div>Loading...</div>;
     }
+    // Construct the URL using environment variables and other state values
+    const signupUrl = `${process.env.REACT_APP_HOST_URL}/cl_gsi?client_id=${app_key}&channel_transaction=<transaction_id>&origin=${service_domain}`;
 
     return (
         <DashboardLayout userName={userName}>
             <h5>Home &gt; View Service</h5>
             <div className="container">
                 <form className="service-form">
-                            <div className="form-section">
-                                <label>Service Name *</label>
-                                <input type="text" placeholder="Service Name" ame="service_name" id="service_name" value={service_name || ''} readOnly={isServiceNameReadOnly} />
-                                <small>The name of your OAuth 2.0 client. This name is only used to identify the client in the console and will not be shown to end users.</small>
-                            </div>
+                    <div className="form-section">
+                        <label>Service Name *</label>
+                        <input type="text" placeholder="Service Name" ame="service_name" id="service_name" value={service_name || ''} readOnly={isServiceNameReadOnly} />
+                        <small>The name of your OAuth 2.0 client. This name is only used to identify the client in the console and will not be shown to end users.</small>
+                    </div>
 
-                            <div className="form-section">
-                                <label>Service Domain *</label>
-                                <input type="url" name="service_domain" placeholder="https://your-app-url.com" value={service_domain || ''} readOnly={isServiceDomainReadOnly} />
-                                <small>For use with requests from a browser</small>
-                            </div>
+                    <div className="form-section">
+                        <label>Service Domain *</label>
+                        <input type="url" name="service_domain" placeholder="https://your-app-url.com" value={service_domain || ''} readOnly={isServiceDomainReadOnly} />
+                        <small>For use with requests from a browser</small>
+                    </div>
 
-                            <div className="form-section">
-                                <label>Authorized redirect URIs</label>
-                                <input type="url" name="service_uri" placeholder="https://your-redirect-url.com" value={service_uri || ''} readOnly={isServiceUriReadOnly} />
-                                <small>For use with requests from a web server</small>
-                            </div>
-                            
-                            <div className="form-buttons">
-                        {Number(isApproved) === 0 && (
+                    <div className="form-section">
+                        <label>Authorized redirect URIs</label>
+                        <input type="url" name="service_uri" placeholder="https://your-redirect-url.com" value={service_uri || ''} readOnly={isServiceUriReadOnly} />
+                        <small>For use with requests from a web server</small>
+                    </div>
+
+                    <div className="form-buttons">
+                        {Number(isApproved) === 0 && userRole === 'ADMIN-USER' && (
                             <button onClick={handleApproveService} className="approve-button">Approve Service</button>
                         )}
+                        {Number(isApproved) === 0 && userRole !== 'ADMIN-USER' && (
+                            <button className="add-service-btn" disabled>Service is Not Approved</button>
+                        )}
                         {Number(isApproved) === 1 && (
-                            <button className="add-service-btn" disabled>Service is Approved</button>
+                            <button className="approve-button" disabled>Service is Approved</button>
                         )}
                     </div>
-                       
                 </form>
 
-                    <div className="additional-info">
-                        <div className="info-section">
-                            <label>App Key</label>
-                            <p>{app_key}</p>
-                        </div>
-
-                        <div className="info-section">
-                            <label>App Secrets</label>
-                            <p>{app_secret}</p>
-                        </div>
-
-                        <div className="info-section">
-                            <label>Creation date</label>
-                            <p>{created_at}</p>
-                        </div>
+                <div className="additional-info">
+                    <div className="info-section">
+                        <label>App Key</label>
+                        <p>{app_key}</p>
                     </div>
-                    
+
+                    <div className="info-section">
+                        <label>App Secrets</label>
+                        <p>{app_secret}</p>
+                    </div>
+
+                    <div className="info-section">
+                        <label>Creation date</label>
+                        <p>{created_at}</p>
+                    </div>
+
+                    <div className="info-section">
+                        <label>Signup Button Credentials</label>
+                        <p>{signupUrl}</p>
+                        <small>Use this URL for your sign-up/sign-in button.<br/><b>Note:</b> 'channel_transaction' must contain the transaction ID generated by your application.</small>
+                    </div>
+                </div>
             </div>
         </DashboardLayout>
     );

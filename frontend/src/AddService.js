@@ -70,9 +70,7 @@ const AddService = () => {
                 },
                 body: JSON.stringify(serviceDataToSend),
             });
-            console.log('Response Status:', response.status);
             const responseBody = await response.json();
-            console.log('Response Body:', responseBody);
 
             if (response.ok) {
                 alert("Service has been registered!");

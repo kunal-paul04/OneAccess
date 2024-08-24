@@ -39,7 +39,6 @@ export const handleLogout = () => {
                 if (window.google) {
                     window.google.accounts.id.disableAutoSelect(); 
                     window.google.accounts.id.revoke(process.env.REACT_APP_GOOGLE_CLIENT_ID, () => {
-                        console.log('User signed out from Google.');
                         window.location.href = "/";
                     });
                 } else {
