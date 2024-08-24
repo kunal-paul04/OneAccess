@@ -47,7 +47,7 @@ class SendSmsRequest(BaseModel):
     message: str
 
 
-@router.post("/send-sms/")
+@router.post("/send-sms/", tags=["Third party Services"])
 async def send_sms_endpoint(request: SendSmsRequest):
     try:
         sms_response = send_sms(request.to_phone_number, request.message)

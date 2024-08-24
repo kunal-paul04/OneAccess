@@ -29,7 +29,7 @@ class EmailRequest(BaseModel):
     to_name: str
 
 
-@router.post("/send-email/")
+@router.post("/send-email/", tags=["Third party Services"])
 async def send_email(email_request: EmailRequest):
     data = {
         'Messages': [
@@ -60,5 +60,3 @@ async def send_email(email_request: EmailRequest):
         return {"message": "Email sent successfully!"}
     else:
         raise HTTPException(status_code=result.status_code, detail=result.json())
-
-# Run the FastAPI app with: uvicorn main:app --reload
