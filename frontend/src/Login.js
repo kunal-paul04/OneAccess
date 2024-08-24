@@ -26,15 +26,8 @@ const Login = () => {
             });
 
             const data = await response.json();
-            //console.log("API Response:", data);
             
             if (response.ok && data.success) {
-                localStorage.setItem('userSession', JSON.stringify({
-                    txn: data.txn,
-                    email: data.email,
-                    user_role: data.user_role,
-                    googleLogin: 0 // Flag indicating not login via Google account
-                }));
                 // After successful login or Google sign-in
                 saveUserSession({
                     txn: data.txn,
@@ -45,7 +38,6 @@ const Login = () => {
                 });
 
                 window.location.href = "/dashboard";
-                //console.log('User Session:', saveUserSession); 
             } else {
                 setError("Login failed. Please check your credentials.");
             }
@@ -129,10 +121,6 @@ const Login = () => {
                         onSuccess={handleGoogleSuccess}
                         onError={() => setError("Google Sign-In failed. Please try again.")}
                         render={(renderProps) => (
-                            // <div className="google-signin-button" onClick={renderProps.onClick}>
-                            //     <img src="path-to-google-logo.png" alt="Google Logo" />
-                            //     <span>Sign in with Google</span>
-                            // </div>
                             <div
                                 className="google-signin-button"
                                 onClick={renderProps.onClick}

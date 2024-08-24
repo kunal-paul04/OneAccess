@@ -1,7 +1,15 @@
-import React from "react";
+import React from 'react';
+import { useLocation } from 'react-router-dom';
 import "./ClientLogin.css";
 
 const ClientLogin = () => {
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+
+  const clientId = params.get('client_id');
+  const transactionId = params.get('channel_transaction');
+  const origin = params.get('origin');
+  
   return (
     <div className="login-wrapper">
       <div className="form-container">

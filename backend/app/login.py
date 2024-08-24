@@ -32,12 +32,14 @@ async def login(login_request: LoginRequest, mongo_client: MongoClient = Depends
     txn = generate_txn_number()
     user_role = user.get("user_role")
     googleLogin = user.get("googleLogin")
+    name = user.get("name")
     # Optionally, create a session or JWT token here
     return {
         "success": True,
         "message": "Login successful",
         "email": login_request.email,
         "googleLogin": googleLogin,
+        "name": name,
         "txn": txn,
         "user_role": user_role  # Include user_role in the response
     }
