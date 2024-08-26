@@ -1,4 +1,4 @@
-// Dashboard.js
+// src/Dashboard.js
 import React, { useEffect, useState } from "react";
 import DashboardLayout from './DashboardLayout';
 import DashboardAnalytics from './DashboardAnalytics';
@@ -12,6 +12,9 @@ const Dashboard = () => {
 
         if (userSession && userSession.name) {
             setUserName(userSession.name);
+        } else {
+            // Redirect to login if no session
+            window.location.href = "/";
         }
     }, []);
 
