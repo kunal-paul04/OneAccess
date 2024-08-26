@@ -25,7 +25,7 @@ def hash_password(password: str) -> str:
     # Simple hash function for passwords; use a more secure method in production
     return hashlib.sha256(password.encode()).hexdigest()
 
-print("Import successful")
+
 @router.post("/register", tags=["Login & Registration"])
 async def register(request: RegisterRequest, mongo_client=Depends(get_mongo_client)):
     db = mongo_client[MONGO_DB]  # Get the database
