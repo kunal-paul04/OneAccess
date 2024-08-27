@@ -109,6 +109,9 @@ const Services = () => {
                             {userRole !== 'ADMIN-USER' && (
                                 <button className="services-table button" onClick={() => window.location.href = `/ViewService?client_id=${encodeURIComponent(service.enc_app_key)}`}>View</button>
                             )}
+                            {userRole === 'ADMIN-USER' && Number(service.is_approved) !== 1 && (
+                                <button className="services-table button" onClick={() => window.location.href = `/ViewService?client_id=${encodeURIComponent(service.enc_app_key)}`}>View</button>
+                            )}
                             {Number(service.is_approved) === 1 && userRole === 'ADMIN-USER' && (
                                 <button className="add-service-btn" disabled>Approved</button>
                             )}

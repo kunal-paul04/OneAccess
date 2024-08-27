@@ -2,11 +2,13 @@ import time
 import secrets
 import hashlib
 import os
+import jwt
 from uuid import uuid4
-from datetime import datetime
+from datetime import datetime, timedelta
 from pydantic import BaseModel, EmailStr
 from fastapi import APIRouter, HTTPException, Depends, status
-from app.database import get_mongo_client, MONGO_DB, MONGO_SERVICE_COLLECTION, MONGO_COLLECTION
+from pymongo import MongoClient
+from app.database import get_mongo_client, MONGO_DB, MONGO_SERVICE_COLLECTION, MONGO_COLLECTION, MONGO_CLIENT_COLLECTION, MONGO_TOKEN_COLLECTION
 from cryptography.fernet import Fernet
 
 router = APIRouter()
@@ -127,6 +129,8 @@ async def add_client_service(request: ClientServiceAddRequest, mongo_client=Depe
 async def generate_client_id(request: ClientServiceListRequest, mongo_client=Depends(get_mongo_client)):
     db = mongo_client[MONGO_DB]
     service_collection = db[MONGO_SERVICE_COLLECTION]
+    sso_users_collection = db[MONGO_CLIENT_COLLECTION]
+    sso_client_collection = db[MONGO_COLLECTION]
 
     if not request.client_email:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Client email is required!")
@@ -149,8 +153,31 @@ async def generate_client_id(request: ClientServiceListRequest, mongo_client=Dep
         "app_secret": app_secret,
         "created_at": created_at
     }
+    # get client's record from user master and prepare to insert in a client collection
+    user = sso_client_collection.find_one({"user_email": request.client_email})
+
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+
+    client_rec = {
+        "app_key": app_key,
+        "app_secret": app_secret,
+        "user_email": request.client_email,
+        "passkey": user.get("passkey"),
+        "user_role": "CL-USER",
+        "address": user.get("address"),
+        "city_id": user.get("city_id"),
+        "country_id": user.get("country_id"),
+        "dob": user.get("dob"),
+        "gender": user.get("gender"),
+        "name": user.get("name"),
+        "state_id": user.get("state_id"),
+        "user_phone": user.get("user_phone"),
+        "zip": user.get("zip")
+    }
     try:
         service_collection.insert_one(client_data)
+        sso_users_collection.insert_one(client_rec)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to insert data into the database")
 
@@ -208,6 +235,18 @@ class ClientServiceApproveRequest(BaseModel):
     client_id: str
 
 
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+    clientId: str
+    transactionId: str
+    origin: str
+
+
+def hash_password(password: str) -> str:
+    return hashlib.sha256(password.encode()).hexdigest()
+
+
 @router.post("/approve_service", tags=["Service Management"])
 async def approve_service_key(request: ClientServiceApproveRequest, mongo_client=Depends(get_mongo_client)):
     db = mongo_client[MONGO_DB]
@@ -236,4 +275,95 @@ async def approve_service_key(request: ClientServiceApproveRequest, mongo_client
             "success": True,
             "status_code": 200,
             "message": "Service Approved successfully"
+        }
+
+
+@router.post("/client_login", tags=["Client Login & Registration"])
+async def client_login(login_request: LoginRequest, mongo_client: MongoClient = Depends(get_mongo_client)):
+    sso_client_collection = mongo_client[MONGO_DB][MONGO_SERVICE_COLLECTION]
+    sso_users_collection = mongo_client[MONGO_DB][MONGO_CLIENT_COLLECTION]
+    sso_token_collection = mongo_client[MONGO_DB][MONGO_TOKEN_COLLECTION]
+
+    hashed_password = hash_password(login_request.password)
+
+    client = sso_client_collection.find_one({"app_key": login_request.clientId, "is_approved": 1})
+
+    if not client:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid client credentials - UNKNOWN CLIENT ID")
+
+    txn = login_request.transactionId
+    service_name = client.get("service_name")
+    service_domain = client.get("service_domain")
+    service_uri = client.get("service_uri")
+    app_secret = client.get("app_secret")
+    redirect_uri = client.get("service_uri")
+
+    user = sso_users_collection.find_one({"user_email": login_request.email, "passkey": hashed_password})
+
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+
+    username = user.get("name")
+    user_email = login_request.email
+    dob = user.get("dob")
+
+    request_time = datetime.utcnow()
+    expire_time = datetime.utcnow() + timedelta(minutes=float(os.getenv("JWT_EXPIRATION_MINUTES")))
+
+    # Create JWT claims
+    jwt_data = {
+        "service_name": service_name,
+        "service_domain": service_domain,
+        "username": username,
+        "user_email": user_email,
+        "dob": dob,
+        "exp": int((datetime.utcnow() + timedelta(minutes=float(os.getenv("JWT_EXPIRATION_MINUTES")))).timestamp())  # Token expiry time
+    }
+
+    # Generate tokens
+    jwt_record = {
+        "iss": service_domain,
+        "sub": service_name,
+        "aud": login_request.clientId,
+        "iat": int(request_time.timestamp()),
+        "exp": int(expire_time.timestamp()),
+        "auth_time": int(request_time.timestamp()),
+        "given_name": username,
+        "preferred_username": username,
+        "email": user_email,
+        "birthdate": dob,
+        "auth_txn": txn,
+        "auth_mode": "ONEACCESS_AUTH"
+    }
+    id_token = jwt.encode(jwt_data, os.getenv("SECRET_KEY"), algorithm=os.getenv("ALGORITHM"))
+    jwt_token = jwt.encode(jwt_record, os.getenv("SECRET_KEY"), algorithm=os.getenv("ALGORITHM"))
+
+    # Insert token data into the database
+    token_data = {
+        "app_key": login_request.clientId,
+        "app_secret": app_secret,
+        "txn": txn,
+        "user_email": user_email,
+        "id_token": id_token,
+        "jwt_token": jwt_token,
+        "request_time": request_time,
+        "expire_time": expire_time,
+        "redirect_url": service_uri
+    }
+    result = sso_token_collection.insert_one(token_data)
+
+    # Return response
+    if result.inserted_id:
+        return {
+            "success": True,
+            "status_code": 200,
+            "message": "Transaction successful",
+            "id_token": id_token,
+            "redirect_uri": redirect_uri
+        }
+    else:
+        return {
+            "success": False,
+            "status_code": 400,
+            "message": "Transaction failed!"
         }
