@@ -31,12 +31,20 @@ const ClientLogin = () => {
       const data = await response.json();
       if (response.ok && data.success) {
         // After successful login or Google sign-in
-        const redirectURL = `${data.redirect_uri}?token=${data.id_token}`;
+        const redirectURL = `${data.redirect_uri}?token=${data.id_token}&error=0`;
     
         // Navigate to the generated URL
         window.location.href = redirectURL;
       } else {
-        setError("Login failed. Please check your credentials.");
+        if (data.redirectURL) {
+          // After successful login or Google sign-in
+          const redirectURL = `${data.redirect_uri}?token=0&error=${data.redirectURL}`;
+      
+          // Navigate to the generated URL
+          window.location.href = redirectURL;
+        } else {
+          setError("Login failed. Please check your credentials.");
+        }
       }
     } catch (error) {
       setError("An error occurred. Please try again later.");

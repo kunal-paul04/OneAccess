@@ -242,6 +242,11 @@ class LoginRequest(BaseModel):
     transactionId: str
     origin: str
 
+class TokenValidation(BaseModel):
+    app_key: str
+    app_secret: str
+    token: str
+
 
 def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
@@ -360,6 +365,38 @@ async def client_login(login_request: LoginRequest, mongo_client: MongoClient = 
             "message": "Transaction successful",
             "id_token": id_token,
             "redirect_uri": redirect_uri
+        }
+    else:
+        return {
+            "success": False,
+            "status_code": 400,
+            "message": "Transaction failed!",
+            "redirect_uri": redirect_uri
+        }
+
+
+@router.post("/validate_token", tags=["Client Login & Registration"])
+async def validate_token(validation_request: TokenValidation, mongo_client: MongoClient = Depends(get_mongo_client)):
+    sso_token_collection = mongo_client[MONGO_DB][MONGO_TOKEN_COLLECTION]
+
+    client = sso_token_collection.find_one({"app_key": validation_request.app_key, "app_secret": validation_request.app_secret, "id_token": validation_request.token})
+
+    if not client:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid client credentials - UNKNOWN CLIENT ID")
+
+    request_time = datetime.utcnow()
+    expire_time = client.get("expire_time")
+
+    if request_time > expire_time:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Token!")
+
+    jwt_token = client.get("jwt_token")
+    if jwt_token is not None:
+        return {
+            "success": True,
+            "status_code": 200,
+            "message": "Transaction successful",
+            "jwt_token": jwt_token
         }
     else:
         return {
