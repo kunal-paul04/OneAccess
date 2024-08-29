@@ -10,6 +10,7 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from pymongo import MongoClient
 from app.database import get_mongo_client, MONGO_DB, MONGO_SERVICE_COLLECTION, MONGO_COLLECTION, MONGO_CLIENT_COLLECTION, MONGO_TOKEN_COLLECTION
 from cryptography.fernet import Fernet
+from app.utils import get_ist_time
 
 router = APIRouter()
 
@@ -18,6 +19,52 @@ router = APIRouter()
 ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY")
 cipher_suite = Fernet(ENCRYPTION_KEY)
 
+
+
+class ClientServiceListRequest(BaseModel):
+    client_email: EmailStr
+
+class ClientServiceAddRequest(BaseModel):
+    client_email: EmailStr
+    app_key: str
+    service_name: str
+    service_domain: str
+    service_uri: str
+
+class ClientServiceAppRequest(BaseModel):
+    client_id: str
+
+class ClientServiceApproveRequest(BaseModel):
+    client_email: EmailStr
+    client_id: str
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+    clientId: str
+    transactionId: str
+    origin: str
+
+class TokenValidation(BaseModel):
+    app_key: str
+    app_secret: str
+    token: str
+
+def hash_password(password: str) -> str:
+    return hashlib.sha256(password.encode()).hexdigest()
+
+class RegistrationRequest(BaseModel):
+    name: str
+    email: str
+    dob: str
+    password: str
+    country_id: int
+    state_id: str
+    city_id: str
+    user_phone: int
+    clientId: str
+    transactionId: str
+    origin: str
 
 # Function to encrypt a given app_key
 @router.post("/encrypt_clientid", tags=["Service Management"])
@@ -31,10 +78,6 @@ def encrypt_app_key(app_key: str) -> str:
 def decrypt_app_key(encrypted_key: str) -> str:
     decrypted_key = cipher_suite.decrypt(encrypted_key.encode("utf-8"))
     return decrypted_key.decode("utf-8")
-
-
-class ClientServiceListRequest(BaseModel):
-    client_email: EmailStr
 
 
 @router.post("/get_service_list", tags=["Service Management"])
@@ -85,14 +128,6 @@ async def get_service_list(request: ClientServiceListRequest, mongo_client=Depen
         service["enc_app_key"] = encrypt_app_key(service["app_key"])
 
     return {"success": True, "message": "Service found", "service_details": services}
-
-
-class ClientServiceAddRequest(BaseModel):
-    client_email: EmailStr
-    app_key: str
-    service_name: str
-    service_domain: str
-    service_uri: str
 
 
 @router.post("/add_service", tags=["Service Management"])
@@ -191,10 +226,6 @@ async def generate_client_id(request: ClientServiceListRequest, mongo_client=Dep
     }
 
 
-class ClientServiceAppRequest(BaseModel):
-    client_id: str
-
-
 @router.post("/fetch_client", tags=["Service Management"])
 async def fetch_client_detail(request: ClientServiceAppRequest, mongo_client=Depends(get_mongo_client)):
     db = mongo_client[MONGO_DB]
@@ -228,28 +259,6 @@ async def fetch_client_detail(request: ClientServiceAppRequest, mongo_client=Dep
         "message": "Service found",
         "data": services
     }
-
-
-class ClientServiceApproveRequest(BaseModel):
-    client_email: EmailStr
-    client_id: str
-
-
-class LoginRequest(BaseModel):
-    email: str
-    password: str
-    clientId: str
-    transactionId: str
-    origin: str
-
-class TokenValidation(BaseModel):
-    app_key: str
-    app_secret: str
-    token: str
-
-
-def hash_password(password: str) -> str:
-    return hashlib.sha256(password.encode()).hexdigest()
 
 
 @router.post("/approve_service", tags=["Service Management"])
@@ -311,9 +320,11 @@ async def client_login(login_request: LoginRequest, mongo_client: MongoClient = 
     username = user.get("name")
     user_email = login_request.email
     dob = user.get("dob")
+    # Convert time in IST Format
+    clock_time = get_ist_time()
 
-    request_time = datetime.utcnow()
-    expire_time = datetime.utcnow() + timedelta(minutes=float(os.getenv("JWT_EXPIRATION_MINUTES")))
+    request_time = clock_time
+    expire_time = clock_time + timedelta(minutes=float(os.getenv("JWT_EXPIRATION_MINUTES")))
 
     # Create JWT claims
     jwt_data = {
@@ -322,7 +333,7 @@ async def client_login(login_request: LoginRequest, mongo_client: MongoClient = 
         "username": username,
         "user_email": user_email,
         "dob": dob,
-        "exp": int((datetime.utcnow() + timedelta(minutes=float(os.getenv("JWT_EXPIRATION_MINUTES")))).timestamp())  # Token expiry time
+        "exp": int((clock_time + timedelta(minutes=float(os.getenv("JWT_EXPIRATION_MINUTES")))).timestamp())  # Token expiry time
     }
 
     # Generate tokens
@@ -403,4 +414,108 @@ async def validate_token(validation_request: TokenValidation, mongo_client: Mong
             "success": False,
             "status_code": 400,
             "message": "Transaction failed!"
+        }
+
+
+@router.post("/client_registration", tags=["Client Login & Registration"])
+async def client_registration(registration_request: RegistrationRequest, mongo_client: MongoClient = Depends(get_mongo_client)):
+    sso_client_collection = mongo_client[MONGO_DB][MONGO_SERVICE_COLLECTION]
+    sso_users_collection = mongo_client[MONGO_DB][MONGO_CLIENT_COLLECTION]
+    sso_token_collection = mongo_client[MONGO_DB][MONGO_TOKEN_COLLECTION]
+
+    hashed_password = hash_password(registration_request.password)
+
+    client = sso_client_collection.find_one({"app_key": registration_request.clientId, "is_approved": 1})
+
+    if not client:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid client credentials - UNKNOWN CLIENT ID")
+
+    txn = registration_request.transactionId
+    service_name = client.get("service_name")
+    service_domain = client.get("service_domain")
+    service_uri = client.get("service_uri")
+    app_secret = client.get("app_secret")
+    redirect_uri = client.get("service_uri")
+
+    # Prepare tp register client
+    userData = registration_request.userData
+    client_data = {k: v for k, v in userData.dict().items() if v is not None}
+    hashed_password = hash_password(client_data['passkey'])
+    client_data['passkey'] = hashed_password
+    client_data['user_role'] = "CL-USER"
+    client_data['app_key'] = registration_request.clientId
+    client_data['app_secret'] = app_secret
+
+    # Update the user's profile
+    user = sso_users_collection.insert_one(client_data)
+
+    if not user.inserted_id:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+
+    username = client_data['name']
+    user_email = client_data['user_email']
+    dob = client_data['dob']
+    # Convert time in IST Format
+    clock_time = get_ist_time()
+
+    request_time = clock_time
+    expire_time = clock_time + timedelta(minutes=float(os.getenv("JWT_EXPIRATION_MINUTES")))
+
+    # Create JWT claims
+    jwt_data = {
+        "service_name": service_name,
+        "service_domain": service_domain,
+        "username": username,
+        "user_email": user_email,
+        "dob": dob,
+        "exp": int((clock_time + timedelta(minutes=float(os.getenv("JWT_EXPIRATION_MINUTES")))).timestamp())  # Token expiry time
+    }
+
+    # Generate tokens
+    jwt_record = {
+        "iss": service_domain,
+        "sub": service_name,
+        "aud": registration_request.clientId,
+        "iat": int(request_time.timestamp()),
+        "exp": int(expire_time.timestamp()),
+        "auth_time": int(request_time.timestamp()),
+        "given_name": username,
+        "preferred_username": username,
+        "email": user_email,
+        "birthdate": dob,
+        "auth_txn": txn,
+        "auth_mode": "ONEACCESS_AUTH"
+    }
+    id_token = jwt.encode(jwt_data, os.getenv("SECRET_KEY"), algorithm=os.getenv("ALGORITHM"))
+    jwt_token = jwt.encode(jwt_record, os.getenv("SECRET_KEY"), algorithm=os.getenv("ALGORITHM"))
+
+    # Insert token data into the database
+    token_data = {
+        "app_key": registration_request.clientId,
+        "app_secret": app_secret,
+        "txn": txn,
+        "user_email": user_email,
+        "id_token": id_token,
+        "jwt_token": jwt_token,
+        "request_time": request_time,
+        "expire_time": expire_time,
+        "redirect_url": service_uri
+    }
+    result = sso_token_collection.insert_one(token_data)
+
+    # Return response
+    if result.inserted_id:
+        return {
+            "success": True,
+            "status_code": 200,
+            "message": "Transaction successful",
+            "id_token": id_token,
+            "redirect_uri": redirect_uri
+        }
+    else:
+        return {
+            "success": False,
+            "status_code": 400,
+            "message": "Transaction failed!",
+            "redirect_uri": redirect_uri
         }

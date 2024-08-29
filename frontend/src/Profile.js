@@ -250,7 +250,7 @@ const Profile = () => {
                                 onChange={(e) => setUserName(e.target.value)}
                                 readOnly={isuserNameReadOnly}
                             />
-                             {errors.userName && <div className="error">{errors.userName}</div>}
+                            {errors.userName && <div className="error">{errors.userName}</div>}
                         </div>
                         <div className="form-group">
                             <label>Email:</label>
@@ -268,7 +268,7 @@ const Profile = () => {
                                 onChange={(e) => setPhone(e.target.value)}
                                 readOnly={isPhoneReadOnly}
                             />
-                             {errors.phone && <div className="error">{errors.phone}</div>}
+                            {errors.phone && <div className="error">{errors.phone}</div>}
                         </div>
                         <div className="form-group">
                             <label>Date of Birth:</label>
