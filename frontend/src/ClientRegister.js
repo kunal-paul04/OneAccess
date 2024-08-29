@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom'; // useNavigate
 import "./ClientRegister.css";
 //import OneAccessIcon from '.public/OneAccess.ico';
@@ -16,10 +16,7 @@ const ClientRegister = () => {
   const [district, setDistrict] = useState('');
   const [states, setStates] = useState([]);
   const [districts, setDistricts] = useState([]);
-  const [loading, setLoading] = useState(true); // Loading state
   const [errors, setErrors] = useState({});
-
-  const hasFetchedProfile = useRef(false);
 
   const clientId = params.get('client_id');
   const transactionId = params.get('channel_transaction');
@@ -127,6 +124,9 @@ const ClientRegister = () => {
         name: userName,
         state_id: state,
         user_phone: phone,
+        clientId,
+        transactionId,
+        origin
     };
 
     try {
@@ -135,7 +135,7 @@ const ClientRegister = () => {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(userData, clientId, transactionId, origin),
+            body: JSON.stringify(userData),
         });
         const responseBody = await response.json();
 
@@ -163,9 +163,9 @@ const ClientRegister = () => {
   };
 
   // Render loading state until profile data is fetched
-  if (loading) {
-      return <div>Loading...</div>;
-  }
+  // if (loading) {
+  //     return <div>Loading...</div>;
+  // }
 
   return (
     <div className="register-wrapper">
@@ -173,25 +173,22 @@ const ClientRegister = () => {
         <h2 className="title">Sign Up</h2>
         {errors.registration && <div className="error-message">{errors.registration}</div>}
         <form onSubmit={handleSubmit}>
-          <input className="input" type="text" placeholder="Name" value={userName} onChange={(e) => setUserName(e.target.value)} disabled={loading} required />
+          <input className="input" type="text" placeholder="Name" value={userName} onChange={(e) => setUserName(e.target.value)} required />
           {errors.userName && <div className="error">{errors.userName}</div>}
-          <input className="input" type="email" placeholder="Email address" value={email} onChange={(e) => setEmail(e.target.value)} disabled={loading} required />
+          <input className="input" type="email" placeholder="Email address" value={email} onChange={(e) => setEmail(e.target.value)} required />
           {errors.email && <div className="error">{errors.email}</div>}
           <input className="input" type="password" placeholder="Enter your Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
           {errors.password && <div className="error">{errors.password}</div>}
-          <input className="input" type="date" placeholder="Date of Birth" value={dob} onChange={(e) => setDob(e.target.value)} disabled={loading} required />
+          <input className="input" type="date" placeholder="Date of Birth" value={dob} onChange={(e) => setDob(e.target.value)} required />
           {errors.userName && <div className="error">{errors.dob}</div>}
-          <input className="input" type="text" placeholder="Mobile Number" value={phone} onChange={(e) => setPhone(e.target.value)} disabled={loading} required />
+          <input className="input" type="text" placeholder="Mobile Number" value={phone} onChange={(e) => setPhone(e.target.value)} required />
           {errors.phone && <div className="error">{errors.phone}</div>}
-          <select className="dropdown" value={country || ''} onChange={(e) => setCountry(e.target.value)} disabled={loading} >
+          <select className="dropdown" value={country || ''} onChange={(e) => setCountry(e.target.value)} >
             <option value="">Select Country</option>
             <option value="99">India</option>
           </select>
           {errors.country && <div className="error">{errors.country}</div>}
-          <select className="dropdown">
-            <option>Select a state</option>
-          </select>
-          <select className="dropdown" value={state || ''} onChange={(e) => setState(e.target.value)} disabled={loading} >
+          <select className="dropdown" value={state || ''} onChange={(e) => setState(e.target.value)} >
             <option value="">Select State</option>
             {states.map((state) => (
             <option key={state.id} value={state.id}>
@@ -200,10 +197,7 @@ const ClientRegister = () => {
             ))}
           </select>
           {errors.state && <div className="error">{errors.state}</div>}
-          <select className="dropdown">
-            <option>Select a district</option>
-          </select>
-          <select className="dropdown" value={district || ''} onChange={(e) => setDistrict(e.target.value)} disabled={loading} >
+          <select className="dropdown" value={district || ''} onChange={(e) => setDistrict(e.target.value)} >
             <option value="">Select District</option>
             {districts.map((district) => (
             <option key={district.id} value={district.id}>

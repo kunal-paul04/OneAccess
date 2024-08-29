@@ -54,13 +54,13 @@ def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
 
 class RegistrationRequest(BaseModel):
-    name: str
-    email: str
-    dob: str
-    password: str
-    country_id: int
-    state_id: str
+    user_email: str
+    passkey: str
     city_id: str
+    country_id: str
+    dob: str
+    name: str
+    state_id: str
     user_phone: int
     clientId: str
     transactionId: str
@@ -430,8 +430,6 @@ async def client_registration(registration_request: RegistrationRequest, mongo_c
     sso_users_collection = mongo_client[MONGO_DB][MONGO_CLIENT_COLLECTION]
     sso_token_collection = mongo_client[MONGO_DB][MONGO_TOKEN_COLLECTION]
 
-    hashed_password = hash_password(registration_request.password)
-
     client = sso_client_collection.find_one({"app_key": registration_request.clientId, "is_approved": 1})
 
     if not client:
@@ -445,13 +443,21 @@ async def client_registration(registration_request: RegistrationRequest, mongo_c
     redirect_uri = client.get("service_uri")
 
     # Prepare tp register client
-    userData = registration_request.userData
-    client_data = {k: v for k, v in userData.dict().items() if v is not None}
-    hashed_password = hash_password(client_data['passkey'])
-    client_data['passkey'] = hashed_password
-    client_data['user_role'] = "CL-USER"
-    client_data['app_key'] = registration_request.clientId
-    client_data['app_secret'] = app_secret
+    hashed_password = hash_password(registration_request.passkey)
+
+    client_data = {
+        "user_email": registration_request.user_email,
+        "passkey": hashed_password,
+        "city_id": registration_request.city_id,
+        "country_id": registration_request.country_id,
+        "dob": registration_request.dob,
+        "name": registration_request.name,
+        "state_id": registration_request.state_id,
+        "user_phone": registration_request.user_phone,
+        "user_role": "CL-USER",
+        "app_key": registration_request.clientId,
+        "app_secret": app_secret
+    }
 
     # Update the user's profile
     user = sso_users_collection.insert_one(client_data)
