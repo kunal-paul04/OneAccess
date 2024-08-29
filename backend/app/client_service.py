@@ -286,7 +286,7 @@ async def approve_service_key(request: ClientServiceApproveRequest, mongo_client
 @router.post("/client_login", tags=["Client Login & Registration"])
 async def client_login(login_request: LoginRequest, mongo_client: MongoClient = Depends(get_mongo_client)):
     sso_client_collection = mongo_client[MONGO_DB][MONGO_SERVICE_COLLECTION]
-    sso_users_collection = mongo_client[MONGO_DB][MONGO_CLIENT_COLLECTION]
+    sso_users_collection = mongo_client[MONGO_DB][MONGO_COLLECTION]
     sso_token_collection = mongo_client[MONGO_DB][MONGO_TOKEN_COLLECTION]
 
     hashed_password = hash_password(login_request.password)
@@ -340,8 +340,15 @@ async def client_login(login_request: LoginRequest, mongo_client: MongoClient = 
         "auth_txn": txn,
         "auth_mode": "ONEACCESS_AUTH"
     }
-    id_token = jwt.encode(jwt_data, os.getenv("SECRET_KEY"), algorithm=os.getenv("ALGORITHM"))
-    jwt_token = jwt.encode(jwt_record, os.getenv("SECRET_KEY"), algorithm=os.getenv("ALGORITHM"))
+    secret_key = os.getenv("SECRET_KEY")
+    algorithm = os.getenv("ALGORITHM")
+
+    # Ensure they are loaded correctly
+    if not secret_key or not algorithm:
+        raise ValueError("SECRET_KEY or ALGORITHM environment variable is not set properly.")
+
+    id_token = jwt.encode(jwt_data, secret_key, algorithm=algorithm)
+    jwt_token = jwt.encode(jwt_record, secret_key, algorithm=algorithm)
 
     # Insert token data into the database
     token_data = {
