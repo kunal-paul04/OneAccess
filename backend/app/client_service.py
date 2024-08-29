@@ -61,7 +61,7 @@ class RegistrationRequest(BaseModel):
     dob: str
     name: str
     state_id: str
-    user_phone: int
+    user_phone: str
     clientId: str
     transactionId: str
     origin: str
