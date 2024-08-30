@@ -131,7 +131,7 @@ const ClientRegister = () => {
 
     try {
         const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/client_registration`, {
-            method: 'PUT',
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
