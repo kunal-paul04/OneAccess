@@ -2,7 +2,6 @@ import time
 import secrets
 import hashlib
 import os
-import jwt
 from uuid import uuid4
 from datetime import datetime, timedelta
 from pydantic import BaseModel, EmailStr
@@ -301,22 +300,23 @@ async def approve_service_key(request: ClientServiceApproveRequest, mongo_client
 
 @router.post("/client_login", tags=["Client Login & Registration"])
 async def client_login(login_request: LoginRequest, mongo_client: MongoClient = Depends(get_mongo_client)):
-    sso_client_collection = mongo_client[MONGO_DB][MONGO_SERVICE_COLLECTION]
-    sso_users_collection = mongo_client[MONGO_DB][MONGO_CLIENT_COLLECTION]
-    sso_token_collection = mongo_client[MONGO_DB][MONGO_TOKEN_COLLECTION]
+    client_service = mongo_client[MONGO_DB][MONGO_SERVICE_COLLECTION]
+    sso_users_collection = mongo_client[MONGO_DB][MONGO_COLLECTION]
+    client_collection = mongo_client[MONGO_DB][MONGO_CLIENT_COLLECTION]
+    token_collection = mongo_client[MONGO_DB][MONGO_TOKEN_COLLECTION]
 
     hashed_password = hash_password(login_request.password)
 
-    client = sso_client_collection.find_one({"app_key": login_request.clientId, "is_approved": 1})
+    client = client_service.find_one({"app_key": login_request.clientId, "is_approved": 1})
 
     if not client:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid client credentials - UNKNOWN CLIENT ID")
 
     txn = login_request.transactionId
-    service_name = client.get("service_name")
-    service_domain = client.get("service_domain")
-    service_uri = client.get("service_uri")
     app_secret = client.get("app_secret")
+    service_domain = client.get("service_domain")
+    service_name = client.get("service_name")
+    service_uri = client.get("service_uri")
     redirect_uri = client.get("service_uri")
 
     user = sso_users_collection.find_one({"user_email": login_request.email, "passkey": hashed_password})
@@ -327,7 +327,13 @@ async def client_login(login_request: LoginRequest, mongo_client: MongoClient = 
     username = user.get("name")
     user_email = login_request.email
     dob = user.get("dob")
-    user_role = user.get("user_role")
+
+    client_type = client_collection.find_one({"user_email": login_request.email})
+
+    if not client_type:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Client's user type not found")
+
+    user_role = client_type.get("user_role")
     # Convert time in IST Format
     clock_time = get_ist_time()
 
@@ -376,7 +382,7 @@ async def client_login(login_request: LoginRequest, mongo_client: MongoClient = 
         "expire_time": expire_time,
         "redirect_url": service_uri
     }
-    result = sso_token_collection.insert_one(token_data)
+    result = token_collection.insert_one(token_data)
 
     # Return response
     if result.inserted_id:
