@@ -10,7 +10,7 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from pymongo import MongoClient
 from app.database import get_mongo_client, MONGO_DB, MONGO_SERVICE_COLLECTION, MONGO_COLLECTION, MONGO_CLIENT_COLLECTION, MONGO_TOKEN_COLLECTION
 from cryptography.fernet import Fernet
-from app.utils import get_ist_time
+from app.utils import get_ist_time, generate_jwt_token
 
 router = APIRouter()
 
@@ -302,7 +302,7 @@ async def approve_service_key(request: ClientServiceApproveRequest, mongo_client
 @router.post("/client_login", tags=["Client Login & Registration"])
 async def client_login(login_request: LoginRequest, mongo_client: MongoClient = Depends(get_mongo_client)):
     sso_client_collection = mongo_client[MONGO_DB][MONGO_SERVICE_COLLECTION]
-    sso_users_collection = mongo_client[MONGO_DB][MONGO_COLLECTION]
+    sso_users_collection = mongo_client[MONGO_DB][MONGO_CLIENT_COLLECTION]
     sso_token_collection = mongo_client[MONGO_DB][MONGO_TOKEN_COLLECTION]
 
     hashed_password = hash_password(login_request.password)
@@ -318,7 +318,6 @@ async def client_login(login_request: LoginRequest, mongo_client: MongoClient = 
     service_uri = client.get("service_uri")
     app_secret = client.get("app_secret")
     redirect_uri = client.get("service_uri")
-    user_role = client.get("user_role")
 
     user = sso_users_collection.find_one({"user_email": login_request.email, "passkey": hashed_password})
 
@@ -328,6 +327,7 @@ async def client_login(login_request: LoginRequest, mongo_client: MongoClient = 
     username = user.get("name")
     user_email = login_request.email
     dob = user.get("dob")
+    user_role = user.get("user_role")
     # Convert time in IST Format
     clock_time = get_ist_time()
 
@@ -360,15 +360,9 @@ async def client_login(login_request: LoginRequest, mongo_client: MongoClient = 
         "auth_txn": txn,
         "auth_mode": "ONEACCESS_AUTH"
     }
-    secret_key = os.getenv("SECRET_KEY")
-    algorithm = os.getenv("ALGORITHM")
 
-    # Ensure they are loaded correctly
-    if not secret_key or not algorithm:
-        raise ValueError("SECRET_KEY or ALGORITHM environment variable is not set properly.")
-
-    id_token = jwt.encode(jwt_data, secret_key, algorithm=algorithm)
-    jwt_token = jwt.encode(jwt_record, secret_key, algorithm=algorithm)
+    id_token = generate_jwt_token(jwt_data)
+    jwt_token = generate_jwt_token(jwt_record)
 
     # Insert token data into the database
     token_data = {
@@ -508,8 +502,8 @@ async def client_registration(registration_request: RegistrationRequest, mongo_c
         "auth_txn": txn,
         "auth_mode": "ONEACCESS_AUTH"
     }
-    id_token = jwt.encode(jwt_data, os.getenv("SECRET_KEY"), algorithm=os.getenv("ALGORITHM"))
-    jwt_token = jwt.encode(jwt_record, os.getenv("SECRET_KEY"), algorithm=os.getenv("ALGORITHM"))
+    id_token = generate_jwt_token(jwt_data)
+    jwt_token = generate_jwt_token(jwt_record)
 
     # Insert token data into the database
     token_data = {
