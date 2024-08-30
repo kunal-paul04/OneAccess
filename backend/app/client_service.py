@@ -20,9 +20,9 @@ ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY")
 cipher_suite = Fernet(ENCRYPTION_KEY)
 
 
-
 class ClientServiceListRequest(BaseModel):
     client_email: EmailStr
+
 
 class ClientServiceAddRequest(BaseModel):
     client_email: EmailStr
@@ -31,12 +31,15 @@ class ClientServiceAddRequest(BaseModel):
     service_domain: str
     service_uri: str
 
+
 class ClientServiceAppRequest(BaseModel):
     client_id: str
+
 
 class ClientServiceApproveRequest(BaseModel):
     client_email: EmailStr
     client_id: str
+
 
 class LoginRequest(BaseModel):
     email: str
@@ -45,13 +48,16 @@ class LoginRequest(BaseModel):
     transactionId: str
     origin: str
 
+
 class TokenValidation(BaseModel):
     app_key: str
     app_secret: str
     token: str
 
+
 def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
+
 
 class RegistrationRequest(BaseModel):
     user_email: str
@@ -65,6 +71,7 @@ class RegistrationRequest(BaseModel):
     clientId: str
     transactionId: str
     origin: str
+
 
 # Function to encrypt a given app_key
 @router.post("/encrypt_clientid", tags=["Service Management"])
