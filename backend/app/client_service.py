@@ -199,7 +199,7 @@ async def generate_client_id(request: ClientServiceListRequest, mongo_client=Dep
         "app_secret": app_secret,
         "user_email": request.client_email,
         "passkey": user.get("passkey"),
-        "user_role": "CL-USER",
+        "user_role": "CL-ADMIN",
         "address": user.get("address"),
         "city_id": user.get("city_id"),
         "country_id": user.get("country_id"),
@@ -311,6 +311,7 @@ async def client_login(login_request: LoginRequest, mongo_client: MongoClient = 
     service_uri = client.get("service_uri")
     app_secret = client.get("app_secret")
     redirect_uri = client.get("service_uri")
+    user_role = client.get("user_role")
 
     user = sso_users_collection.find_one({"user_email": login_request.email, "passkey": hashed_password})
 
@@ -348,6 +349,7 @@ async def client_login(login_request: LoginRequest, mongo_client: MongoClient = 
         "preferred_username": username,
         "email": user_email,
         "birthdate": dob,
+        "user_role": user_role,
         "auth_txn": txn,
         "auth_mode": "ONEACCESS_AUTH"
     }
