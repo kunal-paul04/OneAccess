@@ -1,9 +1,11 @@
-import uuid
-from fastapi import APIRouter
-from datetime import datetime
-import pytz
 import os
 import jwt
+import uuid
+import pytz
+import random
+from fastapi import APIRouter
+from datetime import datetime
+
 
 router = APIRouter()
 
@@ -34,3 +36,8 @@ def generate_jwt_token(jwt_record: dict) -> dict:
 
     token = jwt.encode(jwt_record, secret_key, algorithm=algorithm)
     return token
+
+
+def generate_otp() -> int:
+    """Generates a random 6-digit integer."""
+    return random.randint(100000, 999999)
