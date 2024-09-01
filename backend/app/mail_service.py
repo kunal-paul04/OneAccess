@@ -96,7 +96,7 @@ async def send_otp(email_request: OtpEmailRequest, mongo_client=Depends(get_mong
 
         otp_data = {
             "user_email": email_request.to_email,
-            "transaction_id": txn_number,
+            "otp_random_id": txn_number,
             "otp": otp_code,
             "otp_generation_time": otp_generation_time.strftime("%d-%m-%Y %H:%M:%S"),
             "otp_expiry_time": formatted_expiry_time
@@ -136,9 +136,9 @@ async def send_otp(email_request: OtpEmailRequest, mongo_client=Depends(get_mong
     if result.status_code == 200:
         return {
             "status_code": 200,
-            # "message": "OTP email sent successfully!",
+            "message": "OTP email sent successfully!",
             # "otp": otp_code,
-            "transaction_id": txn_number
+            "otp_random_id": txn_number
         }
     else:
         print("Mailjet API response:", result.json())
@@ -148,7 +148,7 @@ async def send_otp(email_request: OtpEmailRequest, mongo_client=Depends(get_mong
 class OtpVerificationRequest(BaseModel):
     email: str
     otp: int
-    transaction_id: str
+    otp_random_id: str
 
 
 @router.post("/verify_otp", tags=["Third party Services"])
@@ -157,7 +157,7 @@ async def verify_otp(otp_request: OtpVerificationRequest, mongo_client=Depends(g
         db = mongo_client[MONGO_DB]
         otp_collection = db[MONGO_OPT_GENERATE]
 
-        otp_record = otp_collection.find_one({"user_email": otp_request.email, "transaction_id": otp_request.transaction_id})
+        otp_record = otp_collection.find_one({"user_email": otp_request.email, "otp_random_id": otp_request.otp_random_id})
 
         if not otp_record:
             raise HTTPException(status_code=404, detail="OTP not found for the given email and transaction ID.")

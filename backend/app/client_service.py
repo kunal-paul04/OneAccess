@@ -298,6 +298,29 @@ async def approve_service_key(request: ClientServiceApproveRequest, mongo_client
         }
 
 
+class ClientVerificationValidation(BaseModel):
+    client_id: str
+    origin: str
+
+
+@router.post("/client_verification", tags=["Client Login & Registration"])
+async def client_verification(client_request: ClientVerificationValidation, mongo_client: MongoClient = Depends(get_mongo_client)):
+    client_service = mongo_client[MONGO_DB][MONGO_SERVICE_COLLECTION]
+
+    client = client_service.find_one({"app_key": client_request.client_id, "service_domain": client_request.origin, "is_approved": 1})
+
+    if not client:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid client credentials - UNKNOWN CLIENT ID")
+    return {
+        "success": True,
+        "status_code": 200,
+        "message": "Client Verified",
+        "client_id": client_request.client_id,
+        "origin": client_request.origin
+    }
+
+
 @router.post("/client_login", tags=["Client Login & Registration"])
 async def client_login(login_request: LoginRequest, mongo_client: MongoClient = Depends(get_mongo_client)):
     client_service = mongo_client[MONGO_DB][MONGO_SERVICE_COLLECTION]
