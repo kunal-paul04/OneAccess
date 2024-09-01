@@ -6,15 +6,53 @@ const ClientLogin = () => {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const [email, setEmail] = useState('');
-  const [otp, setOtp] = useState(''); // State to manage OTP input
+  const [otp, setOtp] = useState('');
+  const [otpRandomId, setOtpRandomId] = useState('');
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false); // State to manage loading spinner
-  const [otpSent, setOtpSent] = useState(false); // State to track OTP sent status
-  const [timer, setTimer] = useState(60); // State for the countdown timer
+  const [loading, setLoading] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [timer, setTimer] = useState(60);
+  const [isVerified, setIsVerified] = useState(false); // State to manage verification status
 
   const clientId = params.get('client_id');
   const transactionId = params.get('channel_transaction');
   const origin = params.get('origin');
+
+  useEffect(() => {
+    // Call client_verification API on component mount
+    const verifyClient = async () => {
+      setLoading(true);
+      setError('');
+
+      try {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/client_verification`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "accept": "application/json"
+          },
+          body: JSON.stringify({ client_id: clientId, origin }),
+        });
+
+        const data = await response.json();
+        if (data.status_code === 200) {
+          setIsVerified(true); // Set the client as verified
+        } else {
+          setError("This client is not verified for OneAccess. Contact technical support.");
+        }
+      } catch (error) {
+        setError("An error occurred while verifying the client. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (clientId && origin) {
+      verifyClient(); // Verify client only if clientId and origin are available
+    } else {
+      setError("Client ID or Origin missing in the URL parameters.");
+    }
+  }, [clientId, origin]);
 
   useEffect(() => {
     let countdown;
@@ -30,7 +68,7 @@ const ClientLogin = () => {
   }, [otpSent, timer]);
 
   const handleSendOtp = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setError('');
     setLoading(true);
 
@@ -45,9 +83,10 @@ const ClientLogin = () => {
       });
 
       const data = await response.json();
-      if (data.status_code== 200) {
+      if (data.status_code === 200) {
         setOtpSent(true);
         setTimer(60); // Reset the timer to 60 seconds
+        setOtpRandomId(data.otp_random_id);
       } else {
         setError("Failed to send OTP. Please try again.");
       }
@@ -74,11 +113,11 @@ const ClientLogin = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, otp, transaction_id: transactionId }),
+        body: JSON.stringify({ email, otp, otp_random_id: otpRandomId }),
       });
 
       const data = await response.json();
-      if (data.status_code== 200) {
+      if (data.status_code === 200) {
         const redirectURL = `${data.redirect_uri}?token=${data.id_token}&error=0`;
         window.location.href = redirectURL;
       } else {
@@ -94,44 +133,48 @@ const ClientLogin = () => {
   return (
     <div className="login-wrapper">
       <div className="form-container">
-        <h2 className="title">Sign In</h2>
+        <img src="/OneAccess.png" style={{ width: '150px', height: '150px' }} alt="OneAccess" className="OneAccess-image" />
         {error && <div className="error-message">{error}</div>}
-        <form onSubmit={otpSent ? handleVerifyOtp : handleSendOtp}>
-          <input
-            className="input"
-            type="email"
-            placeholder="Email address"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            disabled={loading || otpSent}
-            required
-          />
-          {otpSent && (
-            <>
-              <input
-                className="input"
-                type="text"
-                placeholder="Enter OTP"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                maxLength={6}
-                disabled={loading}
-                required
-              />
-              {timer > 0 ? (
-                <p className="timer">You can resend OTP in {timer} seconds</p>
-              ) : (
-                <button type="button" className="button" onClick={handleResendOtp}>
-                  Resend OTP
-                </button>
-              )}
-            </>
-          )}
-          <button type="submit" className="button" disabled={loading}>
-            {loading ? "Loading..." : otpSent ? "Verify OTP" : "Next"}
-          </button>
-          <div className="spacing"></div>
-        </form>
+        {isVerified ? (
+          <form onSubmit={otpSent ? handleVerifyOtp : handleSendOtp}>
+            <input
+              className="input"
+              type="email"
+              placeholder="Email address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={loading || otpSent}
+              required
+            />
+            {otpSent && (
+              <>
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="Enter OTP"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  maxLength={6}
+                  disabled={loading}
+                  required
+                />
+                {timer > 0 ? (
+                  <p className="timer">You can resend OTP in {timer} seconds</p>
+                ) : (
+                  <button type="button" className="button" onClick={handleResendOtp}>
+                    Resend OTP
+                  </button>
+                )}
+              </>
+            )}
+            <button type="submit" className="button" disabled={loading}>
+              {loading ? "Loading..." : otpSent ? "Verify OTP" : "Next"}
+            </button>
+            <div className="spacing"></div>
+          </form>
+        ) : (
+          <p className="error-message">Client verification is required.</p>
+        )}
       </div>
     </div>
   );
