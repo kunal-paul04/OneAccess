@@ -134,7 +134,12 @@ async def send_otp(email_request: OtpEmailRequest, mongo_client=Depends(get_mong
     result = mailjet_client.send.create(data=data)
 
     if result.status_code == 200:
-        return {"message": "OTP email sent successfully!", "otp": otp_code, "transaction_id": txn_number}
+        return {
+            "status_code": 200,
+            # "message": "OTP email sent successfully!",
+            # "otp": otp_code,
+            "transaction_id": txn_number
+        }
     else:
         print("Mailjet API response:", result.json())
         raise HTTPException(status_code=result.status_code, detail=result.json())
@@ -167,7 +172,7 @@ async def verify_otp(otp_request: OtpVerificationRequest, mongo_client=Depends(g
 
         otp_collection.update_one({"_id": otp_record["_id"]}, {"$set": {"status": 1}})
 
-        return {"message": "OTP verification successful."}
+        return {"status_code": 200, "message": "OTP verification successful."}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred while verifying OTP: {str(e)}")
