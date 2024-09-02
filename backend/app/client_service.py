@@ -501,6 +501,7 @@ async def client_registration(registration_request: RegistrationRequest, mongo_c
     username = client_data['name']
     user_email = client_data['user_email']
     dob = client_data['dob']
+    user_role = client_data['user_role']
     # Convert time in IST Format
     clock_time = get_ist_time()
 
@@ -530,6 +531,7 @@ async def client_registration(registration_request: RegistrationRequest, mongo_c
         "preferred_username": username,
         "email": user_email,
         "birthdate": dob,
+        "user_role": user_role,
         "auth_txn": txn,
         "auth_mode": "ONEACCESS_AUTH"
     }
