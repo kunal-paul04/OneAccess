@@ -129,7 +129,7 @@ const ClientLogin = () => {
           const response_data = await user_response.json();
           if (response_data.status_code === 200) {
             // if registered user
-            const redirectURL = `${data.redirect_uri}?token=${data.id_token}&error=0`;
+            const redirectURL = `${response_data.redirect_uri}?token=${response_data.id_token}&error=0`;
             window.location.href = redirectURL;
           } else if (response_data.status_code === 404) {
             // if new user
