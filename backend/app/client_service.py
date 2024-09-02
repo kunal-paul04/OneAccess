@@ -7,12 +7,12 @@ from datetime import datetime, timedelta
 from pydantic import BaseModel, EmailStr
 from fastapi import APIRouter, HTTPException, Depends, status
 from pymongo import MongoClient
-from app.database import get_mongo_client, MONGO_DB, MONGO_SERVICE_COLLECTION, MONGO_COLLECTION, MONGO_CLIENT_COLLECTION, MONGO_TOKEN_COLLECTION
+from app.database import get_mongo_client, MONGO_DB, MONGO_SERVICE_COLLECTION, MONGO_COLLECTION, \
+    MONGO_CLIENT_COLLECTION, MONGO_TOKEN_COLLECTION
 from cryptography.fernet import Fernet
 from app.utils import get_ist_time, generate_jwt_token
 
 router = APIRouter()
-
 
 # Load a key for encryption/decryption
 ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY")
@@ -86,7 +86,6 @@ def decrypt_app_key(encrypted_key: str) -> str:
 
 @router.post("/get_service_list", tags=["Service Management"])
 async def get_service_list(request: ClientServiceListRequest, mongo_client=Depends(get_mongo_client)):
-
     db = mongo_client[MONGO_DB]
     service_collection = db[MONGO_SERVICE_COLLECTION]
     sso_users_collection = db[MONGO_COLLECTION]
@@ -156,7 +155,8 @@ async def add_client_service(request: ClientServiceAddRequest, mongo_client=Depe
         "service_uri": request.service_uri,
         "is_approved": 0
     }
-    result = service_collection.update_one({"client_email": request.client_email, "app_key": request.app_key}, {"$set": service_data})
+    result = service_collection.update_one({"client_email": request.client_email, "app_key": request.app_key},
+                                           {"$set": service_data})
     if result.modified_count == 0:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No changes were made")
     else:
@@ -218,7 +218,8 @@ async def generate_client_id(request: ClientServiceListRequest, mongo_client=Dep
         service_collection.insert_one(client_data)
         sso_users_collection.insert_one(client_rec)
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to insert data into the database")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail="Failed to insert data into the database")
 
     return {
         "success": True,
@@ -284,7 +285,8 @@ async def approve_service_key(request: ClientServiceApproveRequest, mongo_client
     service_data = {
         "is_approved": 1
     }
-    result = service_collection.update_one({"client_email": request.client_email, "app_key": request.client_id}, {"$set": service_data})
+    result = service_collection.update_one({"client_email": request.client_email, "app_key": request.client_id},
+                                           {"$set": service_data})
 
     if result.modified_count == 0:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No changes were made")
@@ -302,10 +304,12 @@ class ClientVerificationValidation(BaseModel):
 
 
 @router.post("/client_verification", tags=["Client Login & Registration"])
-async def client_verification(client_request: ClientVerificationValidation, mongo_client: MongoClient = Depends(get_mongo_client)):
+async def client_verification(client_request: ClientVerificationValidation,
+                              mongo_client: MongoClient = Depends(get_mongo_client)):
     client_service = mongo_client[MONGO_DB][MONGO_SERVICE_COLLECTION]
 
-    client = client_service.find_one({"app_key": client_request.client_id, "service_domain": client_request.origin, "is_approved": 1})
+    client = client_service.find_one(
+        {"app_key": client_request.client_id, "service_domain": client_request.origin, "is_approved": 1})
 
     if not client:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
@@ -329,7 +333,8 @@ async def client_login(login_request: LoginRequest, mongo_client: MongoClient = 
     client = client_service.find_one({"app_key": login_request.clientId, "is_approved": 1})
 
     if not client:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid client credentials - UNKNOWN CLIENT ID")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid client credentials - UNKNOWN CLIENT ID")
 
     txn = login_request.transactionId
     app_secret = client.get("app_secret")
@@ -365,7 +370,8 @@ async def client_login(login_request: LoginRequest, mongo_client: MongoClient = 
         "username": username,
         "user_email": user_email,
         "dob": dob,
-        "exp": int((clock_time + timedelta(minutes=float(os.getenv("JWT_EXPIRATION_MINUTES")))).timestamp())  # Token expiry time
+        "exp": int((clock_time + timedelta(minutes=float(os.getenv("JWT_EXPIRATION_MINUTES")))).timestamp())
+        # Token expiry time
     }
 
     # Generate tokens
@@ -424,10 +430,13 @@ async def client_login(login_request: LoginRequest, mongo_client: MongoClient = 
 async def validate_token(validation_request: TokenValidation, mongo_client: MongoClient = Depends(get_mongo_client)):
     sso_token_collection = mongo_client[MONGO_DB][MONGO_TOKEN_COLLECTION]
 
-    client = sso_token_collection.find_one({"app_key": validation_request.app_key, "app_secret": validation_request.app_secret, "id_token": validation_request.token})
+    client = sso_token_collection.find_one(
+        {"app_key": validation_request.app_key, "app_secret": validation_request.app_secret,
+         "id_token": validation_request.token})
 
     if not client:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid client credentials - UNKNOWN CLIENT ID")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid client credentials - UNKNOWN CLIENT ID")
 
     request_time = datetime.utcnow()
     expire_time = client.get("expire_time")
@@ -453,14 +462,15 @@ async def validate_token(validation_request: TokenValidation, mongo_client: Mong
 
 @router.post("/client_registration", tags=["Client Login & Registration"])
 async def client_registration(registration_request: RegistrationRequest, mongo_client: MongoClient = Depends(get_mongo_client)):
-    sso_client_collection = mongo_client[MONGO_DB][MONGO_SERVICE_COLLECTION]
-    sso_users_collection = mongo_client[MONGO_DB][MONGO_CLIENT_COLLECTION]
-    sso_token_collection = mongo_client[MONGO_DB][MONGO_TOKEN_COLLECTION]
+    service_collection = mongo_client[MONGO_DB][MONGO_SERVICE_COLLECTION]
+    client_collection = mongo_client[MONGO_DB][MONGO_CLIENT_COLLECTION]
+    token_collection = mongo_client[MONGO_DB][MONGO_TOKEN_COLLECTION]
 
-    client = sso_client_collection.find_one({"app_key": registration_request.clientId, "is_approved": 1})
+    client = service_collection.find_one({"app_key": registration_request.clientId, "is_approved": 1})
 
     if not client:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid client credentials - UNKNOWN CLIENT ID")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid client credentials - UNKNOWN CLIENT ID")
 
     txn = registration_request.transactionId
     service_name = client.get("service_name")
@@ -468,7 +478,6 @@ async def client_registration(registration_request: RegistrationRequest, mongo_c
     service_uri = client.get("service_uri")
     app_secret = client.get("app_secret")
     redirect_uri = client.get("service_uri")
-
 
     client_data = {
         "user_email": registration_request.user_email,
@@ -484,7 +493,7 @@ async def client_registration(registration_request: RegistrationRequest, mongo_c
     }
 
     # Update the user's profile
-    user = sso_users_collection.insert_one(client_data)
+    user = client_collection.insert_one(client_data)
 
     if not user.inserted_id:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
@@ -505,7 +514,8 @@ async def client_registration(registration_request: RegistrationRequest, mongo_c
         "username": username,
         "user_email": user_email,
         "dob": dob,
-        "exp": int((clock_time + timedelta(minutes=float(os.getenv("JWT_EXPIRATION_MINUTES")))).timestamp())  # Token expiry time
+        "exp": int((clock_time + timedelta(minutes=float(os.getenv("JWT_EXPIRATION_MINUTES")))).timestamp())
+        # Token expiry time
     }
 
     # Generate tokens
@@ -538,7 +548,7 @@ async def client_registration(registration_request: RegistrationRequest, mongo_c
         "expire_time": expire_time,
         "redirect_url": service_uri
     }
-    result = sso_token_collection.insert_one(token_data)
+    result = token_collection.insert_one(token_data)
 
     # Return response
     if result.inserted_id:
