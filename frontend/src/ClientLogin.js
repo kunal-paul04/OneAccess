@@ -118,8 +118,32 @@ const ClientLogin = () => {
 
       const data = await response.json();
       if (data.status_code === 200) {
-        const redirectURL = `${data.redirect_uri}?token=${data.id_token}&error=0`;
-        window.location.href = redirectURL;
+        try {
+          const user_response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/client_login`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email, clientId, transactionId, origin }),
+          });
+          const response_data = await user_response.json();
+          if (response_data.status_code === 200) {
+            // if registered user
+            const redirectURL = `${data.redirect_uri}?token=${data.id_token}&error=0`;
+            window.location.href = redirectURL;
+          } else if (response_data.status_code === 404) {
+            // if new user
+            const signupButton = `${process.env.REACT_APP_HOST_URL}/cr_gsi?client_id=${clientId}&channel_transaction=${transactionId}&origin=${origin}&user=${email}`;
+            window.location.href = signupButton;
+          } else {
+            const error = `An error occurred - ${response_data.detail}. Please try again later.`;
+            setError(error);
+          }
+        } catch (error) {
+          setError("An error occurred. Please try again later.");
+        } finally {
+          setLoading(false);
+        }
       } else {
         setError("OTP verification failed. Please try again.");
       }

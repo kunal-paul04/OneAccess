@@ -42,7 +42,6 @@ class ClientServiceApproveRequest(BaseModel):
 
 class LoginRequest(BaseModel):
     email: str
-    password: str
     clientId: str
     transactionId: str
     origin: str
@@ -60,7 +59,6 @@ def hash_password(password: str) -> str:
 
 class RegistrationRequest(BaseModel):
     user_email: str
-    passkey: str
     city_id: str
     country_id: str
     dob: str
@@ -328,8 +326,6 @@ async def client_login(login_request: LoginRequest, mongo_client: MongoClient = 
     client_collection = mongo_client[MONGO_DB][MONGO_CLIENT_COLLECTION]
     token_collection = mongo_client[MONGO_DB][MONGO_TOKEN_COLLECTION]
 
-    hashed_password = hash_password(login_request.password)
-
     client = client_service.find_one({"app_key": login_request.clientId, "is_approved": 1})
 
     if not client:
@@ -342,21 +338,20 @@ async def client_login(login_request: LoginRequest, mongo_client: MongoClient = 
     service_uri = client.get("service_uri")
     redirect_uri = client.get("service_uri")
 
-    user = sso_users_collection.find_one({"user_email": login_request.email, "passkey": hashed_password})
+    user = client_collection.find_one({"user_email": login_request.email, "app_key": login_request.clientId})
 
     if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+        # raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invalid credentials - User not found!")
+        return {
+            "success": False,
+            "status_code": status.HTTP_404_NOT_FOUND,
+            "detail": "Invalid credentials - User not found!"
+        }
 
     username = user.get("name")
     user_email = login_request.email
     dob = user.get("dob")
-
-    client_type = client_collection.find_one({"user_email": login_request.email})
-
-    if not client_type:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Client's user type not found")
-
-    user_role = client_type.get("user_role")
+    user_role = user.get("user_role")
     # Convert time in IST Format
     clock_time = get_ist_time()
 
@@ -411,16 +406,16 @@ async def client_login(login_request: LoginRequest, mongo_client: MongoClient = 
     if result.inserted_id:
         return {
             "success": True,
-            "status_code": 200,
-            "message": "Transaction successful",
+            "status_code": status.HTTP_200_OK,
+            "detail": "Transaction successful",
             "id_token": id_token,
             "redirect_uri": redirect_uri
         }
     else:
         return {
             "success": False,
-            "status_code": 400,
-            "message": "Transaction failed!",
+            "status_code": status.HTTP_400_BAD_REQUEST,
+            "detail": "Transaction failed!",
             "redirect_uri": redirect_uri
         }
 
@@ -474,12 +469,9 @@ async def client_registration(registration_request: RegistrationRequest, mongo_c
     app_secret = client.get("app_secret")
     redirect_uri = client.get("service_uri")
 
-    # Prepare tp register client
-    hashed_password = hash_password(registration_request.passkey)
 
     client_data = {
         "user_email": registration_request.user_email,
-        "passkey": hashed_password,
         "city_id": registration_request.city_id,
         "country_id": registration_request.country_id,
         "dob": registration_request.dob,
@@ -552,15 +544,15 @@ async def client_registration(registration_request: RegistrationRequest, mongo_c
     if result.inserted_id:
         return {
             "success": True,
-            "status_code": 200,
-            "message": "Transaction successful",
+            "status_code": status.HTTP_200_OK,
+            "detail": "Transaction successful",
             "id_token": id_token,
             "redirect_uri": redirect_uri
         }
     else:
         return {
             "success": False,
-            "status_code": 400,
-            "message": "Transaction failed!",
+            "status_code": status.HTTP_400_BAD_REQUEST,
+            "detail": "Transaction failed!",
             "redirect_uri": redirect_uri
         }

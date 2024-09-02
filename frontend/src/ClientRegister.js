@@ -7,8 +7,6 @@ const ClientRegister = () => {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const [userName, setUserName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [dob, setDob] = useState('');
   const [country, setCountry] = useState('');
@@ -21,6 +19,7 @@ const ClientRegister = () => {
   const clientId = params.get('client_id');
   const transactionId = params.get('channel_transaction');
   const origin = params.get('origin');
+  const email = params.get('user');
 
   useEffect(() => {
     if (country) {
@@ -117,7 +116,6 @@ const ClientRegister = () => {
 
     const userData = {
         user_email: email,
-        passkey: password,
         city_id: district,
         country_id: country,
         dob,
@@ -175,10 +173,8 @@ const ClientRegister = () => {
         <form onSubmit={handleSubmit}>
           <input className="input" type="text" placeholder="Name" value={userName} onChange={(e) => setUserName(e.target.value)} required />
           {errors.userName && <div className="error">{errors.userName}</div>}
-          <input className="input" type="email" placeholder="Email address" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          <input className="input" type="email" placeholder="Email address" value={email} readOnly required />
           {errors.email && <div className="error">{errors.email}</div>}
-          <input className="input" type="password" placeholder="Enter your Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-          {errors.password && <div className="error">{errors.password}</div>}
           <input className="input" type="date" placeholder="Date of Birth" value={dob} onChange={(e) => setDob(e.target.value)} required />
           {errors.userName && <div className="error">{errors.dob}</div>}
           <input className="input" type="text" placeholder="Mobile Number" value={phone} onChange={(e) => setPhone(e.target.value)} required />
