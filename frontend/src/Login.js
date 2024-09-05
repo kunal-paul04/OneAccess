@@ -32,12 +32,12 @@ const Login = () => {
                 saveUserSession({
                     txn: data.txn,
                     email: data.email,
-                    name: data.name,
+                    name: data.name ? data.name : "",
                     user_role: data.user_role,
-                    googleLogin: 0
+                    googleLogin: data.googleLogin
                 });
 
-                window.location.href = "/dashboard";
+                window.location.href = "/profile";
             } else {
                 setError("Login failed. Please check your credentials.");
             }

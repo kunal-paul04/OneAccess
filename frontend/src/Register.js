@@ -32,6 +32,7 @@ const Register = () => {
             });
 
             const data = await response.json();
+            //console.log("register log:", data)
             if (response.ok && data.success) {
                 setSuccessMessage('Registration successful! Please check your email to verify your account.');
                 setError('');
