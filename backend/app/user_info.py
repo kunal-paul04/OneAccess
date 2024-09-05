@@ -1,5 +1,5 @@
-from fastapi import APIRouter, HTTPException, Depends, status
 from pydantic import BaseModel, EmailStr
+from fastapi import APIRouter, HTTPException, Depends, status
 from app.database import get_mongo_client, MONGO_DB, MONGO_COLLECTION
 
 # REST API Router

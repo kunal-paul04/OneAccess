@@ -31,7 +31,7 @@ async def update_profile(email: str, profile_data: UpdateProfileRequest, mongo_c
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     # Prepare update data
-    update_data = {k: v for k, v in profile_data.dict().items() if v is not None}
+    update_data = {k: v for k, v in profile_data.model_dump().items() if v is not None}
 
     update_data['isprofileUpdated'] = 1
 

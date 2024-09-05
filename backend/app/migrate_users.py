@@ -1,8 +1,8 @@
-from sqlalchemy.orm import Session
-from pymongo import MongoClient
 from sqlalchemy import text
-from fastapi import HTTPException
 from datetime import datetime
+from pymongo import MongoClient
+from fastapi import HTTPException
+from sqlalchemy.orm import Session
 
 
 async def migrate_users(mysql_db: Session, mongo_client: MongoClient, batch_size: int = 100):

@@ -1,7 +1,7 @@
 import bcrypt
 from pydantic import BaseModel
 from pymongo import MongoClient
-from app.utils import generate_txn_number, hash_password
+from app.utils import generate_txn_number
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.database import get_mongo_client, MONGO_DB, MONGO_COLLECTION
 
