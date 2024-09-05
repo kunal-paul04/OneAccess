@@ -1,17 +1,11 @@
-from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel, EmailStr
 import uuid
-import hashlib
-from app.utils import generate_txn_number
+import hmac
+from pydantic import BaseModel, EmailStr
+from fastapi import APIRouter, HTTPException, Depends
+from app.utils import generate_txn_number, hash_password
 from app.database import get_mongo_client, MONGO_DB, MONGO_COLLECTION
 
 router = APIRouter()
-
-
-class RegisterRequest(BaseModel):
-    email: EmailStr
-    password: str
-    confirmPassword: str
 
 
 def generate_unique_id(collection) -> str:
@@ -21,9 +15,10 @@ def generate_unique_id(collection) -> str:
             return unique_id
 
 
-def hash_password(password: str) -> str:
-    # Simple hash function for passwords; use a more secure method in production
-    return hashlib.sha256(password.encode()).hexdigest()
+class RegisterRequest(BaseModel):
+    email: EmailStr
+    password: str
+    confirmPassword: str
 
 
 @router.post("/register", tags=["Login & Registration"])
@@ -31,7 +26,7 @@ async def register(request: RegisterRequest, mongo_client=Depends(get_mongo_clie
     db = mongo_client[MONGO_DB]  # Get the database
     users_collection = db[MONGO_COLLECTION]  # Get the collection
 
-    if request.password != request.confirmPassword:
+    if not hmac.compare_digest(request.password, request.confirmPassword):
         raise HTTPException(status_code=400, detail="Passwords do not match")
 
     # Check if the user already exists
@@ -57,12 +52,11 @@ async def register(request: RegisterRequest, mongo_client=Depends(get_mongo_clie
         return {
             "status_code": 200,
             "success": True,
-            "message": "Login successful",
+            "message": "User registered successfully",
             "email": request.email,
             "googleLogin": googleLogin,
             "txn": txn,
             "user_role": user_role
         }
-        return {"success": True, "message": "User registered successfully"}
     else:
         raise HTTPException(status_code=500, detail="User registration failed")

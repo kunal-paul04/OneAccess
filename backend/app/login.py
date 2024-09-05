@@ -1,7 +1,7 @@
-import hashlib
+import bcrypt
 from pydantic import BaseModel
 from pymongo import MongoClient
-from app.utils import generate_txn_number
+from app.utils import generate_txn_number, hash_password
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.database import get_mongo_client, MONGO_DB, MONGO_COLLECTION
 
@@ -14,19 +14,19 @@ class LoginRequest(BaseModel):
     password: str
 
 
-def hash_password(password: str) -> str:
-    return hashlib.sha256(password.encode()).hexdigest()
-
-
 @router.post("/login", tags=["Login & Registration"])
 async def login(login_request: LoginRequest, mongo_client: MongoClient = Depends(get_mongo_client)):
     sso_users_collection = mongo_client[MONGO_DB][MONGO_COLLECTION]
 
-    hashed_password = hash_password(login_request.password)
-
-    user = sso_users_collection.find_one({"user_email": login_request.email, "passkey": hashed_password})
+    user = sso_users_collection.find_one({"user_email": login_request.email})
 
     if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+
+    stored_password = user.get("passkey")
+
+    # Securely check if the provided password matches the stored hashed password
+    if not bcrypt.checkpw(login_request.password.encode(), stored_password.encode()):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
     txn = generate_txn_number()
