@@ -1,16 +1,16 @@
+import os
 import time
 import secrets
 import hashlib
-import os
 from uuid import uuid4
+from pymongo import MongoClient
+from cryptography.fernet import Fernet
 from datetime import datetime, timedelta
 from pydantic import BaseModel, EmailStr
-from fastapi import APIRouter, HTTPException, Depends, status
-from pymongo import MongoClient
-from app.database import get_mongo_client, MONGO_DB, MONGO_SERVICE_COLLECTION, MONGO_COLLECTION, \
-    MONGO_CLIENT_COLLECTION, MONGO_TOKEN_COLLECTION
-from cryptography.fernet import Fernet
 from app.utils import get_ist_time, generate_jwt_token
+from fastapi import APIRouter, HTTPException, Depends, status
+from app.database import get_mongo_client, MONGO_DB, MONGO_SERVICE_COLLECTION, MONGO_COLLECTION, MONGO_CLIENT_COLLECTION, MONGO_TOKEN_COLLECTION
+
 
 router = APIRouter()
 

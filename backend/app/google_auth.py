@@ -1,21 +1,20 @@
 import os
 import time
-from app.utils import generate_txn_number
 from dotenv import load_dotenv
 from google.oauth2 import id_token
 from pydantic import BaseModel, EmailStr
+from app.utils import generate_txn_number
 from google.auth.transport import requests
 from fastapi.responses import JSONResponse
+from app.register import generate_unique_id
 from fastapi import APIRouter, HTTPException, Depends
 from app.database import get_mongo_client, MONGO_DB, MONGO_COLLECTION
-from app.register import generate_unique_id
 
 
 router = APIRouter()
 
 load_dotenv()
 
-# Google Client ID from .env file
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_AUTH_CLIENT_ID")
 
 
@@ -23,20 +22,15 @@ class GoogleLoginRequest(BaseModel):
     id_token: str
 
 
-class LogoutRequest(BaseModel):
-    txn: str
-    email: EmailStr
-    isGoogleLogin: int
-
-
 @router.post("/google-login", tags=["Login & Registration"])
 async def google_login(request: GoogleLoginRequest, mongo_client=Depends(get_mongo_client)):
     try:
-        db = mongo_client[MONGO_DB]  # Get the database
-        users_collection = db[MONGO_COLLECTION]  # Get the collection
-        # Verify the token with Google
-        sleep_time = float(os.getenv("AUTH_SLEEP_TIME"))  # Wait time before verification
+        db = mongo_client[MONGO_DB]
+        users_collection = db[MONGO_COLLECTION]
+
+        sleep_time = float(os.getenv("AUTH_SLEEP_TIME"))
         time.sleep(sleep_time)
+
         info = id_token.verify_oauth2_token(request.id_token, requests.Request(), GOOGLE_CLIENT_ID)
 
         # Ensure that the token is intended for this app
@@ -54,6 +48,17 @@ async def google_login(request: GoogleLoginRequest, mongo_client=Depends(get_mon
 
         # Check if the user already exists
         existing_user = users_collection.find_one({"user_email": email})
+
+        if existing_user:
+            update_fields = {}
+            if not existing_user.get("name") and name:
+                update_fields["name"] = name
+            if not existing_user.get("profile_pic") and profile_pic:
+                update_fields["profile_pic"] = profile_pic
+
+            if update_fields:
+                users_collection.update_one({"user_email": email}, {"$set": update_fields})
+
         if existing_user is None:
 
             name_parts = name.split()
@@ -91,16 +96,17 @@ async def google_login(request: GoogleLoginRequest, mongo_client=Depends(get_mon
         }
 
     except ValueError as e:
-        # This exception is raised if the token is invalid
         raise HTTPException(status_code=401, detail=f"Invalid Google token: {str(e)}")
-
     except HTTPException as e:
-        # Pass through HTTP exceptions
         raise e
-
     except Exception as e:
-        # Catch any other exceptions and return a generic error message
         raise HTTPException(status_code=500, detail=f"An internal error occurred: {str(e)}. Please try again later.")
+
+
+class LogoutRequest(BaseModel):
+    txn: str
+    email: EmailStr
+    isGoogleLogin: int
 
 
 @router.post("/logout", tags=["Login & Registration"])
