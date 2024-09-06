@@ -172,7 +172,11 @@ async def verify_otp(otp_request: OtpVerificationRequest, mongo_client=Depends(g
 
         otp_collection.update_one({"_id": otp_record["_id"]}, {"$set": {"status": 1}})
 
-        return {"status_code": 200, "message": "OTP verification successful."}
+        return {
+            "status_code": 200,
+            "email": otp_request.email,
+            "message": "OTP verification successful."
+        }
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred while verifying OTP: {str(e)}")

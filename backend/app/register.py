@@ -17,8 +17,10 @@ def generate_unique_id(collection) -> str:
 
 class RegisterRequest(BaseModel):
     email: EmailStr
-    password: str
-    confirmPassword: str
+    name: str
+    gender: str
+    dob: str
+    mobile: int
 
 
 @router.post("/register", tags=["Login & Registration"])
@@ -26,27 +28,28 @@ async def register(request: RegisterRequest, mongo_client=Depends(get_mongo_clie
     db = mongo_client[MONGO_DB]  # Get the database
     users_collection = db[MONGO_COLLECTION]  # Get the collection
 
-    if not hmac.compare_digest(request.password, request.confirmPassword):
-        raise HTTPException(status_code=400, detail="Passwords do not match")
-
     # Check if the user already exists
     existing_user = users_collection.find_one({"user_email": request.email})
     if existing_user:
         raise HTTPException(status_code=400, detail="User already exists")
 
     # Hash the password and save the user
-    hashed_password = hash_password(request.password)
     unique_id = generate_unique_id(users_collection)
     user_role = "CL-USER"
     googleLogin = 0
     user_data = {
         "unique_id": unique_id,
         "user_email": request.email,
-        "passkey": hashed_password,
+        "name": request.name,
+        "gender": request.gender,
+        "dob": request.dob,
+        "user_phone": request.mobile,
+        "user_role": user_role,
         "googleLogin": googleLogin,
-        "user_role": user_role
     }
+
     result = users_collection.insert_one(user_data)
+
     txn = generate_txn_number()
     if result.inserted_id:
         return {
