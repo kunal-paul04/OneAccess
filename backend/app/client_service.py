@@ -1,4 +1,5 @@
 import os
+import hmac
 import time
 import secrets
 import hashlib
@@ -46,13 +47,17 @@ async def generate_client_id(request: ClientServiceListRequest, mongo_client=Dep
     sso_users_collection = db[MONGO_CLIENT_COLLECTION]
     sso_client_collection = db[MONGO_COLLECTION]
 
+    HMAC_SECRET_KEY = secrets.token_bytes(32)
+
     if not request.client_email:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Client email is required!")
 
     # Generate unique app_key and ensure it's not in use
     while True:
         combine_data = f"{uuid4()}_{time.time()}_{secrets.token_hex(16)}"
-        appkey_hash = hashlib.sha256(combine_data.encode()).hexdigest()
+
+        # Use HMAC with SHA-256
+        appkey_hash = hmac.new(HMAC_SECRET_KEY, combine_data.encode(), hashlib.sha256).hexdigest()
         app_key = '-'.join(appkey_hash[i:i + 8] for i in range(0, len(appkey_hash), 8))
         existing_client = service_collection.find_one({"app_key": app_key})
         if not existing_client:
@@ -94,7 +99,7 @@ async def generate_client_id(request: ClientServiceListRequest, mongo_client=Dep
         service_collection.insert_one(client_data)
         sso_users_collection.insert_one(client_rec)
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to insert data into the database")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to insert data into the database {str(e)}")
 
     return {
         "success": True,
@@ -328,7 +333,12 @@ async def client_verification(client_request: ClientVerificationValidation, mong
     client_service = mongo_client[MONGO_DB][MONGO_SERVICE_COLLECTION]
 
     client = client_service.find_one(
-        {"app_key": client_request.client_id, "service_domain": client_request.origin, "is_approved": 1})
+        {
+            "app_key": client_request.client_id,
+            "service_domain": client_request.origin,
+            "is_approved": 1
+        }
+    )
 
     if not client:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
@@ -369,15 +379,32 @@ async def client_login(login_request: LoginRequest, mongo_client: MongoClient = 
     service_uri = client.get("service_uri")
     redirect_uri = client.get("service_uri")
 
-    user = client_collection.find_one({"user_email": login_request.email, "app_key": login_request.clientId})
+    user_master = sso_users_collection.find_one({"user_email": login_request.email})
 
-    if not user:
-        return {"success": False, "status_code": status.HTTP_404_NOT_FOUND, "detail": "Invalid - User not found!"}
+    if not user_master:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found in User Master Table")
 
-    dob = user.get("dob")
-    username = user.get("name")
-    user_email = login_request.email
-    user_role = user.get("user_role")
+    user_role = user_master.get("user_role")
+
+    user_client = client_collection.find_one({"user_email": login_request.email, "app_key": login_request.clientId})
+
+    if not user_client:
+        client_data = {
+            "user_email": login_request.email,
+            "user_role": user_role,
+            "app_key": login_request.clientId,
+            "app_secret": app_secret
+        }
+
+        client = client_collection.insert_one(client_data)
+
+        if not client.inserted_id:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Insertion failed in Client Collection")
+
+    dob = user_master.get("dob")
+    username = user_master.get("name")
+    user_email = user_master.get("user_email")
+    user_role = user_role
 
     # Convert time in IST Format
     clock_time = get_ist_time()
@@ -462,7 +489,9 @@ class RegistrationRequest(BaseModel):
 
 @router.post("/client_registration", tags=["Client Login & Registration"])
 async def client_registration(registration_request: RegistrationRequest, mongo_client: MongoClient = Depends(get_mongo_client)):
+
     service_collection = mongo_client[MONGO_DB][MONGO_SERVICE_COLLECTION]
+    sso_users_collection = mongo_client[MONGO_DB][MONGO_COLLECTION]
     client_collection = mongo_client[MONGO_DB][MONGO_CLIENT_COLLECTION]
     token_collection = mongo_client[MONGO_DB][MONGO_TOKEN_COLLECTION]
 
@@ -478,7 +507,9 @@ async def client_registration(registration_request: RegistrationRequest, mongo_c
     app_secret = client.get("app_secret")
     redirect_uri = client.get("service_uri")
 
-    client_data = {
+    user_role = "CL-USER"
+
+    user_data = {
         "user_email": registration_request.user_email,
         "city_id": registration_request.city_id,
         "country_id": registration_request.country_id,
@@ -486,21 +517,30 @@ async def client_registration(registration_request: RegistrationRequest, mongo_c
         "name": registration_request.name,
         "state_id": registration_request.state_id,
         "user_phone": registration_request.user_phone,
-        "user_role": "CL-USER",
+        "user_role": user_role,
+    }
+    # Insert in main user collection
+    user = sso_users_collection.insert_one(user_data)
+
+    if not user.inserted_id:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Insertion failed in User Collection")
+
+    client_data = {
+        "user_email": registration_request.user_email,
+        "user_role": user_role,
         "app_key": registration_request.clientId,
         "app_secret": app_secret
     }
 
-    # Update the user's profile
-    user = client_collection.insert_one(client_data)
+    client = client_collection.insert_one(client_data)
 
-    if not user.inserted_id:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    if not client.inserted_id:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Insertion failed in Client Collection")
 
-    dob = client_data['dob']
-    username = client_data['name']
-    user_email = client_data['user_email']
-    user_role = client_data['user_role']
+    dob = user_data['dob']
+    username = user_data['name']
+    user_email = user_data['user_email']
+    user_role = user_data['user_role']
 
     # Convert time in IST Format
     clock_time = get_ist_time()

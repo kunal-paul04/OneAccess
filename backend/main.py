@@ -1,17 +1,17 @@
-from fastapi import FastAPI, HTTPException, Depends
-from sqlalchemy.orm import Session
 from pymongo import MongoClient
+from sqlalchemy.orm import Session
+from app.migrate_users import migrate_users
 from app.login import router as login_router
+from app.user_info import router as user_router
+from app.sms_service import router as sms_router
+from app.database import get_db, get_mongo_client
+from app.mail_service import router as send_email
+from app.register import router as register_router
+from fastapi import FastAPI, HTTPException, Depends
 from app.utils import router as generate_txn_number
 from starlette.middleware.cors import CORSMiddleware
-from app.google_auth import router as google_auth_router
-from app.database import get_db, get_mongo_client
-from app.migrate_users import migrate_users
-from app.register import router as register_router
-from app.user_info import router as user_router
 from app.client_service import router as client_router
-from app.mail_service import router as send_email
-from app.sms_service import router as sms_router
+from app.google_auth import router as google_auth_router
 from app.update_profile import router as update_profile_router
 from app.elk_data import get_states_list, CountryRequest, StateRequest, get_district_list
 
@@ -30,6 +30,15 @@ async def migrate_users_endpoint(
 ):
     return await migrate_users(mysql_db, mongo_client)
 
+
+# Allow CORS for development
+app.add_middleware(
+    CORSMiddleware,  # type: ignore
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Include the Google auth router
 app.include_router(google_auth_router)
@@ -79,13 +88,3 @@ async def fetch_districts(state_request: StateRequest):
     districts = [hit["_source"]["name"] for hit in response.get("hits", {}).get("hits", [])]
 
     return {"districts": districts}
-
-
-# Allow CORS for development
-app.add_middleware(
-    CORSMiddleware,  # type: ignore
-    allow_origins=["*"],  # ["http://localhost:3000","https://adequate-renewed-hen.ngrok-free.app/"]
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
