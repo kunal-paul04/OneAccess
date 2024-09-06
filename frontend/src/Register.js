@@ -1,26 +1,22 @@
 import React, { useState } from 'react';
-import {  } from 'react-router-dom'; // useNavigate
 import './Register.css';
+import { useLocation } from 'react-router-dom';
 import { saveUserSession } from './utils/authUtils';
 
 const Register = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
+    const location = useLocation();
+    const [email, setEmail] = useState(location.state?.email || '');
+    const [name, setName] = useState('');
+    const [dob, setDob] = useState('');
+    const [gender, setGender] = useState('');
+    const [mobile, setMobile] = useState('');
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-    //const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);  // Added loading state
 
     const handleRegister = async (e) => {
         e.preventDefault();
-
-        if (password !== confirmPassword) {
-            setError('Passwords do not match');
-            return;
-        }
+        setLoading(true);  // Start spinner
 
         try {
             const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/register`, {
@@ -28,29 +24,20 @@ const Register = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ email, password, confirmPassword }),
+                body: JSON.stringify({ email, name, gender, dob, mobile }),
             });
 
             const data = await response.json();
-            //console.log("register log:", data)
             if (response.ok && data.success) {
                 setSuccessMessage('Registration successful! Please check your email to verify your account.');
                 setError('');
-                localStorage.setItem('userSession', JSON.stringify({
-                    txn: data.txn,
-                    email: data.email,
-                    user_role: data.user_role,
-                    googleLogin: 0 // Flag indicating not login via Google account
-                }));
-                // Save session data
                 saveUserSession({
                     txn: data.txn,
                     email: data.email,
-                    name: data.name, // Assuming the response contains the user's name
-                    user_role: data.user_role, // Assuming the response contains the user's role
-                    googleLogin: data.googleLogin || 0 // If applicable
+                    user_role: data.user_role,
+                    googleLogin: 0
                 });
-                window.location.href = "/profile";
+                window.location.href = '/profile';
             } else {
                 setError(data.detail || 'Registration failed');
                 setSuccessMessage('');
@@ -58,6 +45,8 @@ const Register = () => {
         } catch (error) {
             setError('An error occurred. Please try again later.');
             setSuccessMessage('');
+        } finally {
+            setLoading(false);  // Stop spinner
         }
     };
 
@@ -71,42 +60,58 @@ const Register = () => {
                         placeholder="Enter your Email"
                         required
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        readOnly
                     />
                 </div>
-                <div className="input-group password-wrapper">
+                <div className="input-group">
                     <input
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Enter your Password"
+                        type="text"
+                        placeholder="Name"
                         required
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
                     />
-                    <span
-                        className={`toggle-password ${showPassword ? "fa fa-eye-slash" : "fa fa-eye"}`}
-                        onClick={() => setShowPassword(!showPassword)}
-                    ></span>
                 </div>
-                <div className="input-group password-wrapper">
+                <div className="input-group">
                     <input
-                        type={showConfirmPassword ? "text" : "password"}
-                        placeholder="Confirm your Password"
+                        type="date"
+                        placeholder="Date of Birth"
                         required
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        value={dob}
+                        onChange={(e) => setDob(e.target.value)}
                     />
-                    <span
-                        className={`toggle-password ${showConfirmPassword ? "fa fa-eye-slash" : "fa fa-eye"}`}
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    ></span>
+                </div>
+                <div className="input-group">
+                    <select
+                        required
+                        value={gender}
+                        onChange={(e) => setGender(e.target.value)}
+                    >
+                        <option value="">Select Gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div className="input-group">
+                    <input
+                        type="tel"
+                        placeholder="Mobile Number"
+                        required
+                        value={mobile}
+                        onChange={(e) => setMobile(e.target.value)}
+                    />
                 </div>
                 {error && <p className="error-message">{error}</p>}
                 {successMessage && <p className="success-message">{successMessage}</p>}
-                <button type="submit" className="register-btn">Register</button>
-                <p className="signup-link">
-                   Already have an Account? <a href="/login">Sign In</a>
+                <button type="submit" className="register-btn" disabled={loading}>  {/* Disable during loading */}
+                    {loading ? 'Registering...' : 'Register'}
+                </button>
+                <p className="signin-link">
+                    Already have an Account? <a href="/login">Sign In</a>
                 </p>
             </form>
+            {loading && <div className="overlay"><div className="loading-spinner"></div></div>}  {/* Spinner */}
         </div>
     );
 };

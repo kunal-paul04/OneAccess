@@ -1,136 +1,163 @@
-/* Login.css */
-
+/* General container */
 .login-container {
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background-color: #f7f7f7;
+    background: linear-gradient(90deg, #9b75fa, #6cf0f7); /* Gradient background */
 }
 
-.login-form {
-    width: 400px;
-    padding: 20px;
-    background-color: white;
+/* Login Card */
+.login-card {
+    background: #fff;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    max-width: 400px;
+    width: 100%;
     text-align: center;
 }
 
-.login-form h2 {
-    margin-bottom: 20px;
-    font-size: 24px;
+/* Title Styling */
+.login-title {
+    font-size: 2rem;
     font-weight: bold;
+    margin-bottom: 2rem;
     color: #333;
+    font-family: 'Roboto', sans-serif;
 }
 
-.input-group {
-    margin-bottom: 15px;
+/* Input Styling */
+.login-form input {
+    width: calc(100% - 2rem);
+    padding: 0.75rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #ddd;
+    border-radius: 25px; /* Rounded corners */
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s ease;
 }
 
-.input-group input {
-    width: 90%;
-    padding: 10px;
-    margin-bottom: 5px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+.login-form input:focus {
+    border-color: #ff758c; /* Match the gradient theme */
 }
 
-.forgot-password {
-    display: block;
-    text-align: right;
-    margin-top: -10px;
-    font-size: 12px;
-    color: #007bff;
-    text-decoration: none;
+/* Disabled input styling */
+.login-form input:disabled {
+    background: #f9f9f9;
+    cursor: not-allowed;
 }
 
-.forgot-password:hover {
-    text-decoration: underline;
-}
-
-.login-btn {
+/* Button Styling */
+.login-btn, .google-signin-btn {
     width: 100%;
-    padding: 12px;
-    background-color: #f48024;
-    color: white;
+    padding: 0.75rem;
     border: none;
-    border-radius: 4px;
+    border-radius: 25px; /* Rounded corners for buttons */
+    color: #fff;
+    font-size: 1rem;
     cursor: pointer;
-    font-size: 16px;
-    margin-bottom: 15px;
+    margin-top: 1rem;
+    transition: background-color 0.3s ease;
 }
 
-.login-btn:hover {
-    background-color: #e5681e;
+/* Primary button for sending OTP */
+.login-btn {
+    background-color: #080002; /* Gradient color */
+    background: linear-gradient(90deg, #110d0d, #a9a4a6);
 }
 
+/* Add margin between buttons */
+.login-btn, .google-signin-btn {
+    margin-bottom: 1.5rem; /* Space between OTP and Google buttons */
+}
+
+/* Google login button */
+.google-signin-btn {
+    background-color: #db4437; /* Google button color */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1rem;
+    padding: 0.8rem; /* Increase padding for better appearance */
+    font-weight: bold; /* Bold text for better readability */
+    transition: background-color 0.3s ease; /* Smooth hover effect */
+}
+
+.google-signin-btn img {
+    width: 20px;
+    height: 20px;
+    margin-right: 0.5rem;
+}
+
+.google-signin-btn:hover {
+    background-color: #c13b31; /* Darker color on hover */
+}
+
+/* Resend button styling */
+.resend-btn {
+    background-color: #080002;
+    background: linear-gradient(90deg, #110d0d, #a9a4a6);
+    color: #fff;
+    padding: 0.5rem;
+    border-radius: 25px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+/* Error message styling */
+.error-message {
+    color: #ff0000;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+}
+
+/* Timer styling */
+.timer {
+    margin: 1rem 0;
+}
+
+/* Signup link styling */
 .signup-link {
-    margin-top: 15px;
-    font-size: 14px;
-    color: #333;
+    margin-top: 1rem;
+    font-size: 0.875rem;
 }
 
 .signup-link a {
-    color: #007bff;
+    color: #573589; /* Match gradient */
     text-decoration: none;
+    transition: color 0.3s ease;
 }
 
 .signup-link a:hover {
     text-decoration: underline;
 }
 
-.error-message {
-    color: red;
-    margin-bottom: 15px;
-}
-
-/* Google Sign-In button styling */
-.google-signin-button {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 12px;
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    cursor: pointer;
-    width: 100%;
-    font-size: 14px;
-}
-
-.google-signin-button:hover {
-    background-color: #f0f0f0;
-}
-
-/* Loading Spinner */
-.loading-spinner {
-    border: 4px solid rgba(0, 0, 0, 0.1);
-    border-left-color: #000;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
-}
-
+/* Loading Spinner Overlay */
 .overlay {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.7);
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 9999;
+}
+
+.loading-spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top: 4px solid #4b763b; /* Gradient color */
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
