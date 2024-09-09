@@ -400,6 +400,8 @@ async def client_login(login_request: LoginRequest, mongo_client: MongoClient = 
 
         if not client.inserted_id:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Insertion failed in Client Collection")
+    else :
+        user_role = user_client.get("user_role")
 
     dob = user_master.get("dob")
     username = user_master.get("name")
