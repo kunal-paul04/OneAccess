@@ -11,7 +11,6 @@ import ViewService from './ViewService';
 import ClientRegister from './ClientRegister';
 import ClientLogin from './ClientLogin';
 import { getUserSession } from './utils/authUtils';
-import '@fortawesome/fontawesome-free/css/all.min.css';
 
 const ProtectedRoute = ({ element: Element, ...rest }) => {
   const userSession = getUserSession();
