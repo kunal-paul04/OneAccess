@@ -227,9 +227,6 @@ const Login = () => {
                         )}
                     />
                 </GoogleOAuthProvider>
-                <p className="signup-link">
-                    Don't have an account? <a href="/register">Sign up</a>
-                </p>
             </div>
             {loading && <div className="overlay"><div className="loading-spinner"></div></div>}
         </div>

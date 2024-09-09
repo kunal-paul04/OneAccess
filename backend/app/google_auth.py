@@ -48,8 +48,10 @@ async def google_login(request: GoogleLoginRequest, mongo_client=Depends(get_mon
 
         # Check if the user already exists
         existing_user = users_collection.find_one({"user_email": email})
+        user_role = ''
 
         if existing_user:
+            user_role = existing_user.get("user_role")
             update_fields = {}
             if not existing_user.get("name") and name:
                 update_fields["name"] = name
@@ -64,6 +66,7 @@ async def google_login(request: GoogleLoginRequest, mongo_client=Depends(get_mon
             name_parts = name.split()
             given_name = ' '.join(name_parts[:-1]) if len(name_parts) > 1 else name_parts[0]
             family_name = name_parts[-1] if len(name_parts) > 1 else ''
+            user_role = "CL-USER"
 
             # Hash the password and save the user
             hashed_password = ''
@@ -77,7 +80,7 @@ async def google_login(request: GoogleLoginRequest, mongo_client=Depends(get_mon
                 "passkey": hashed_password,
                 "profile_pic": profile_pic,
                 "googleLogin": 1,
-                "user_role": "CL-USER"
+                "user_role": user_role
             }
             result = users_collection.insert_one(user_data)
             if result.inserted_id is None:
@@ -91,7 +94,7 @@ async def google_login(request: GoogleLoginRequest, mongo_client=Depends(get_mon
             "txn": txn,
             "email": email,
             "name": name,
-            "user_role": "CL-USER",
+            "user_role": user_role,
             "profile_pic": profile_pic
         }
 

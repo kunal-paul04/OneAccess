@@ -54,6 +54,11 @@ const AddService = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        if (!serviceData || !clientEmail) {
+            alert("Required data is missing.");
+            return;
+        }
+
         const serviceDataToSend = {
             service_name: serviceName,
             app_key: serviceData.app_key,
