@@ -384,7 +384,7 @@ async def client_login(login_request: LoginRequest, mongo_client: MongoClient = 
     if not user_master:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found in User Master Table")
 
-    user_role = user_master.get("user_role")
+    user_role = "CL-USER"
 
     user_client = client_collection.find_one({"user_email": login_request.email, "app_key": login_request.clientId})
 
